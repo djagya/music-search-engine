@@ -14,8 +14,7 @@ else
     echo "Already loaded"
 fi
 
-echo "Install packages"
 php /usr/bin/composer.phar install
 
 echo "Starting the server"
-php -S 0.0.0.0:80 client/public/index.php | tee server.log
+php -S 0.0.0.0:80 client/server.php | tee client/server.log

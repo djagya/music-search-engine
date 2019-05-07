@@ -21,3 +21,13 @@ To run the db server separately.
 ```bash
 docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=music mariadb
 ```
+
+To run only the main app via `docker-composer` and make the `client/build` available on `localhost:8080`.
+```bash
+docker-compose run -p 8080:80  app php -S 0.0.0.0:80 client/build/server
+```
+
+Client. Development mode with running `docker-compose up` and attached `./` volume.
+```bash
+npm run watch
+```

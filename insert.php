@@ -5,6 +5,7 @@ use Elasticsearch\ClientBuilder;
 require 'vendor/autoload.php';
 include './db.php';
 
+// https://github.com/elastic/elasticsearch-php
 $client = ClientBuilder::create()->build();
 
 $totalDocCount = $pdo->prepare('select count(id) from spins')->fetchColumn();
