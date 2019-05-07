@@ -1,0 +1,18 @@
+.App {
+  display: flex;
+  justify-content: center;
+}
+
+.container {
+  margin-top: 50px;
+  padding: 0.5em;
+  background-color: #fafafa;
+  border-radius: 3px;
+  flex-grow: 0;
+}
+
+.Form {
+  display: flex;
+  flex-direction: row;
+  margin: 0 auto;
+}

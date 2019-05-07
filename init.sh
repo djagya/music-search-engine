@@ -18,4 +18,4 @@ echo "Install packages"
 php /usr/bin/composer.phar install
 
 echo "Starting the server"
-php -S 0.0.0.0:80 client/index.php | tee client/log.log
+php -S 0.0.0.0:80 client/public/index.php | tee server.log
