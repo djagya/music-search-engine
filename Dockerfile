@@ -5,7 +5,11 @@ FROM php:7.2-cli
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 
 RUN apt-get update && apt-get install -y mysql-client pv nodejs
-RUN docker-php-ext-install pdo pdo_mysql
+RUN docker-php-ext-install pdo pdo_mysql pcntl
+
+# PHP config
+RUN mv "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"
+RUN sed -i -e 's/memory_limit = 128M/memory_limit = 1G/g' "$PHP_INI_DIR/php.ini"
 
 # Install composer and packages
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');"

@@ -3,7 +3,8 @@
   "type": "project",
   "require": {
     "ext-pdo": "*",
-    "elasticsearch/elasticsearch": "6.7"
+    "elasticsearch/elasticsearch": "6.7",
+    "ext-pcntl": "*"
   },
   "license": "MIT",
   "authors": [

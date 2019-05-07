@@ -9,7 +9,9 @@ services:
       - cluster.initial_master_nodes=es01,es02
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms2G -Xmx2G"
+    mem_limit: 3G
+    memswap_limit: 3G
     ulimits:
       memlock:
         soft: -1
@@ -29,7 +31,9 @@ services:
       - cluster.initial_master_nodes=es01,es02
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "ES_JAVA_OPTS=-Xms2G -Xmx2G"
+    mem_limit: 3G
+    memswap_limit: 3G
     ulimits:
       memlock:
         soft: -1
@@ -47,7 +51,7 @@ services:
     environment:
       MYSQL_ROOT_PASSWORD: root
     volumes:
-      - data-volume:/var/lib/mysql # persist the db
+      - data-volume:/var/lib/mysql:cached # persist the db
     networks:
       - esnet
 
@@ -64,7 +68,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./:/app
+      - ./:/app:cached
 #      - data-volume:/data
     networks:
       - esnet
