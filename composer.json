@@ -1,0 +1,15 @@
+{
+  "name": "djagya/bachelor-search",
+  "type": "project",
+  "require": {
+    "ext-pdo": "*",
+    "elasticsearch/elasticsearch": "6.7"
+  },
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "djagya",
+      "email": "djagya@fastmail.com"
+    }
+  ]
+}
