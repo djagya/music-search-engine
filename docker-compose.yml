@@ -46,6 +46,11 @@ services:
       - 3306:3306
     environment:
       MYSQL_ROOT_PASSWORD: root
+    volumes:
+      - data-volume:/var/lib/mysql # persist the db
+    networks:
+      - esnet
+
   app:
     container_name: app
     restart: on-failure
@@ -60,6 +65,9 @@ services:
     tty: true
     volumes:
       - ./:/app
+#      - data-volume:/data
+    networks:
+      - esnet
 
 
 volumes:
@@ -67,7 +75,8 @@ volumes:
     driver: local
   esdata02:
     driver: local
-  app-volume:
+  data-volume:
+    driver: local
 
 networks:
   esnet:

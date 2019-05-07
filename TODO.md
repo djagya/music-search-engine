@@ -3,3 +3,4 @@
 
 Pre-production:
 - publish the "app" image, not build it
+- prepare the SE data with some data inside to not batch index it.
