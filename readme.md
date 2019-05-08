@@ -3,8 +3,9 @@ To start two nodes: `docker-compose up`.
 Data are stored here: `/usr/share/elasticsearch/data`.
 
 Mapping for phrase suggester:
-```
-// to change an exisitng index. need to close it before and open after.
+
+```bash
+# to change an exisitng index. need to close it before and open after.
 curl -X PUT "localhost:9200/bank/_settings?pretty" -H 'Content-Type: application/json' -d'
 {   
     "settings": {
@@ -35,7 +36,7 @@ curl -X PUT "localhost:9200/bank/_settings?pretty" -H 'Content-Type: application
 }
 '
   
-// to specify the mapping using the custom analyzer
+# to specify the mapping using the custom analyzer
 curl -X PUT "localhost:9200/bank/_mapping?pretty" -H 'Content-Type: application/json' -d'
 {
     "properties": {
@@ -57,7 +58,8 @@ curl -X PUT "localhost:9200/bank/_mapping?pretty" -H 'Content-Type: application/
 ```
 
 To test an analyzer:
-```
+
+```bash
 curl "localhost:9200/bank/_analyze?pretty" -H 'Content-Type: application/json' -d'
 {
   "analyzer": "trigram",
@@ -66,7 +68,8 @@ curl "localhost:9200/bank/_analyze?pretty" -H 'Content-Type: application/json' -
 ```
 
 To suggest phrases:
-```
+
+```bash
 curl -X POST "localhost:9200/bank/_search?pretty" -H 'Content-Type: application/json' -d'
 {
   "suggest": {
@@ -92,6 +95,7 @@ curl -X POST "localhost:9200/bank/_search?pretty" -H 'Content-Type: application/
 
 ```
 
+```bash
 curl -X POST "localhost:9200/test/_search?pretty" -H 'Content-Type: application/json' -d'
 {
   "suggest": {
@@ -114,4 +118,4 @@ curl -X POST "localhost:9200/test/_search?pretty" -H 'Content-Type: application/
   }
 }
 '
-
+```
