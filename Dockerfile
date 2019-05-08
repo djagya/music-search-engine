@@ -28,4 +28,4 @@ EXPOSE 80
 
 ENV MYSQL_HOST 127.0.0.1
 ENV DB_NAME music
-CMD bash init.sh | tee init.log
+CMD bash init.sh

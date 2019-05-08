@@ -6,7 +6,8 @@ require 'vendor/autoload.php';
 include './db.php';
 
 $client = ClientBuilder::create()
-    ->setHosts(['es01', 'es02'])
+//    ->setHosts(['es01', 'es02']) // in development only es01 is available
+    ->setHosts(['es01'])
     ->build();
 
 // Temporary make the index more performance for insert.
@@ -70,7 +71,7 @@ function format(int $v)
 
 function harvest(int $maxId, int $childrenN, int $chCount)
 {
-    $limit = 20000;
+    $limit = 5000;
     $fullOffset = $limit * $chCount;
     $offset = 0 + $limit * $childrenN;
 

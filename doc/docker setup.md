@@ -27,7 +27,7 @@ To run only the main app via `docker-composer` and make the `client/build` avail
 docker-compose run -p 8080:80  app php -S 0.0.0.0:80 client/build/server
 ```
 
-Client. Development mode with running `docker-compose up` and attached `./` volume.
+Client. Development mode with running `docker-compose up` and attached `./` volume, that overrides the built assets from the docker image.
 ```bash
-npm run watch
+npm run build
 ```
