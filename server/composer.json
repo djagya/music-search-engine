@@ -4,7 +4,8 @@
   "require": {
     "ext-pdo": "*",
     "elasticsearch/elasticsearch": "6.7",
-    "ext-pcntl": "*"
+    "ext-pcntl": "*",
+    "slim/slim": "^3.0"
   },
   "license": "MIT",
   "authors": [

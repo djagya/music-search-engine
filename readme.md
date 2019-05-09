@@ -1,121 +1,49 @@
-To start two nodes: `docker-compose up`.
-
-Data are stored here: `/usr/share/elasticsearch/data`.
-
-Mapping for phrase suggester:
-
+# Build
+Build the image using the Dockerfile in the current directory, tag it as `app:latest`. It will replace the old image.
 ```bash
-# to change an exisitng index. need to close it before and open after.
-curl -X PUT "localhost:9200/bank/_settings?pretty" -H 'Content-Type: application/json' -d'
-{   
-    "settings": {
-        "index": {
-          "analysis": {
-            "analyzer": {
-              "trigram": {
-                "type": "custom",
-                "tokenizer": "standard",
-                "filter": ["shingle"]
-              },
-              "reverse": {
-                "type": "custom",
-                "tokenizer": "standard",
-                "filter": ["reverse"]
-              }
-            },
-            "filter": {
-              "shingle": {
-                "type": "shingle",
-                "min_shingle_size": 2,
-                "max_shingle_size": 3
-              }
-            }
-          }
-        }
-    }
-}
-'
-  
-# to specify the mapping using the custom analyzer
-curl -X PUT "localhost:9200/bank/_mapping?pretty" -H 'Content-Type: application/json' -d'
-{
-    "properties": {
-      "address": {
-        "type": "text",
-        "fields": {
-          "trigram": {
-            "type": "text",
-            "analyzer": "trigram"
-          },
-          "reverse": {
-            "type": "text",
-            "analyzer": "reverse"
-          }
-        }
-      }
-    }
-}'
+docker image build -t=app .
 ```
 
-To test an analyzer:
-
+However most of the time `docker-compose` should be used as it manages all required services: db, ES nodes, the app.  
 ```bash
-curl "localhost:9200/bank/_analyze?pretty" -H 'Content-Type: application/json' -d'
-{
-  "analyzer": "trigram",
-  "text": "Some city New-York"
-}'
+docker-composer up
 ```
 
-To suggest phrases:
-
+To start the stack also rebuilding the `app` image:
 ```bash
-curl -X POST "localhost:9200/bank/_search?pretty" -H 'Content-Type: application/json' -d'
-{
-  "suggest": {
-    "text": "880 Holmes Lane",
-    "simple_phrase": {
-      "phrase": {
-        "field": "address.trigram",
-        "size": 1,
-        "gram_size": 3,
-        "direct_generator": [ {
-          "field": "address.trigram",
-          "suggest_mode": "always"
-        } ],
-        "highlight": {
-          "pre_tag": "<em>",
-          "post_tag": "</em>"
-        }
-      }
-    }
-  }
-}
-'
-
+docker-composer up --build
 ```
 
+# Load data in the 'db' container
+Put the gzipped data dump in `./data`, load the dump:
 ```bash
-curl -X POST "localhost:9200/test/_search?pretty" -H 'Content-Type: application/json' -d'
-{
-  "suggest": {
-    "text": "noble prize",
-    "simple_phrase": {
-      "phrase": {
-        "field": "title.trigram",
-        "size": 1,
-        "gram_size": 3,
-        "direct_generator": [ {
-          "field": "title.trigram",
-          "suggest_mode": "always"
-        } ],
-        "highlight": {
-          "pre_tag": "<em>",
-          "post_tag": "</em>"
-        }
-      }
-    }
-  }
-}
-'
+docker-compose exec db bash /root/data/load.sh
+```
+
+# Run
+Then the image must be started.
+
+To run the `app` image and make the `EXPOSE` port accessible on the host port `8080`:
+```bash
+docker run -p 8080:80 app
+```
+
+Development mode. Run the built container with its `WORKDIR` mounted to the `pwd` allowing to sync changed files with the container.
+```bash
+docker run -p 8080:80 -i -t -v `pwd`:/app app
+```
+
+To run the db server separately.
+```bash
+docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=music mariadb
+```
+
+To run only the main app via `docker-composer` and make the `client/build` available on `localhost:8080`.
+```bash
+docker-compose run -p 8080:80  app php -S 0.0.0.0:80 client/build/server
+```
+
+Client. Development mode with running `docker-compose up` and attached `./` volume, that overrides the built assets from the docker image.
+```bash
+npm run start
 ```

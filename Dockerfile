@@ -1,10 +1,15 @@
 # Use an official Python runtime as a parent image
 FROM php:7.2-cli
 
+ENV MYSQL_HOST 127.0.0.1
+ENV DB_NAME music
+# Make port 80 available to the world outside this container
+EXPOSE 80
+
 # Nodejs repo
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 
-RUN apt-get update && apt-get install -y mysql-client pv nodejs
+RUN apt-get update && apt-get install -y mysql-client nodejs
 RUN docker-php-ext-install pdo pdo_mysql pcntl
 
 # PHP config
@@ -18,14 +23,15 @@ RUN php composer-setup.php --install-dir=/usr/bin
 RUN php -r "unlink('composer-setup.php');"
 
 WORKDIR /app
-COPY . /app
+COPY init.sh /app
+COPY client /app/client
+COPY server /app/server
+COPY logs /app/logs
+
+# Install PHP app packages
+RUN php /usr/bin/composer.phar install --no-dev --no-interaction -o -d server
 
 # Prepare client assets after we copied the /app, so npm won't load all package again.
 RUN cd client && npm install && npm rebuild node-sass && npm run-script build
 
-# Make port 80 available to the world outside this container
-EXPOSE 80
-
-ENV MYSQL_HOST 127.0.0.1
-ENV DB_NAME music
 CMD bash init.sh

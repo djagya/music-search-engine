@@ -1,6 +1,13 @@
 import axios from 'axios';
 import { RelatedSuggestion, Suggestion } from './types';
 
+
+const esUrl = 'http://localhost:9200';
+
+
+axios.get(esUrl).then(res => console.log(res));
+
+
 const example: Suggestion[] = [
     { id: '1', value: 'Item 1' },
     { id: '2', value: 'Item 2' },
@@ -12,6 +19,7 @@ const relatedExample: RelatedSuggestion[] = [
     { id: 'rel2', value: 'Related 2' },
     { id: 'rel3', value: 'Related 3' },
 ];
+
 
 export function fetchSuggestions(field: string, value: string): Promise<Suggestion[]> {
     // todo: maybe do a direct request to elasticsearch? then there's no need in backend server
@@ -53,3 +61,5 @@ export function fetchRelatedSuggestions(
             return relatedExample;
         });
 }
+
+

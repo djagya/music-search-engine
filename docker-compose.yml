@@ -5,8 +5,9 @@ services:
     container_name: es01
     environment:
       - node.name=es01
-#      - discovery.seed_hosts=es02
-#      - cluster.initial_master_nodes=es01,es02
+      #      - discovery.seed_hosts=es02
+      #      - cluster.initial_master_nodes=es01,es02
+      - cluster.initial_master_nodes=es01
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms2G -Xmx2G"
@@ -22,27 +23,27 @@ services:
       - 9200:9200
     networks:
       - esnet
-# Second node is disabled during development.
-#  es02:
-#    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
-#    container_name: es02
-#    environment:
-#      - node.name=es02
-#      - discovery.seed_hosts=es01
-#      - cluster.initial_master_nodes=es01,es02
-#      - cluster.name=docker-cluster
-#      - bootstrap.memory_lock=true
-#      - "ES_JAVA_OPTS=-Xms2G -Xmx2G"
-#    mem_limit: 3G
-#    memswap_limit: 3G
-#    ulimits:
-#      memlock:
-#        soft: -1
-#        hard: -1
-#    volumes:
-#      - esdata02:/usr/share/elasticsearch/data
-#    networks:
-#      - esnet
+  # Second node is disabled during development.
+  #  es02:
+  #    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
+  #    container_name: es02
+  #    environment:
+  #      - node.name=es02
+  #      - discovery.seed_hosts=es01
+  #      - cluster.initial_master_nodes=es01,es02
+  #      - cluster.name=docker-cluster
+  #      - bootstrap.memory_lock=true
+  #      - "ES_JAVA_OPTS=-Xms2G -Xmx2G"
+  #    mem_limit: 3G
+  #    memswap_limit: 3G
+  #    ulimits:
+  #      memlock:
+  #        soft: -1
+  #        hard: -1
+  #    volumes:
+  #      - esdata02:/usr/share/elasticsearch/data
+  #    networks:
+  #      - esnet
   db:
     container_name: db
     image: mariadb:latest
@@ -53,6 +54,7 @@ services:
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - data-volume:/var/lib/mysql:cached # persist the db
+      - ./data:/root/data # give access to dump files so we can load it when needed directly inside the container
     networks:
       - esnet
 
@@ -69,8 +71,8 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./:/app:cached
-#      - data-volume:/data
+      - ./:/app:cached # todo: for development mode the content of the image will be overwritten by syncing with the current dir
+    #      - data-volume:/data
     networks:
       - esnet
 

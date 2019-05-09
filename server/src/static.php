@@ -1,15 +1,21 @@
 <?php
 declare(strict_types=1);
 
-$publicPath = __DIR__ . '/build/';
+function serveStatic(string $clientPath): bool
+{
+    if (!preg_match('/\.(js|css|json|ico|html|php)$/i', $_SERVER["REQUEST_URI"], $m)) {
+        return false;
+    }
 
-$file = $publicPath . '/index.html';
-if (preg_match('/\.(js|css|json|ico|html|php)$/i', $_SERVER["REQUEST_URI"], $m)) {
     $extension = $m[1];
-    $file = $publicPath . $_SERVER["REQUEST_URI"];
+    $file = $clientPath . $_SERVER["REQUEST_URI"];
+    if (!file_exists($file)) {
+        return false;
+    }
+
     if ($extension === 'php') {
         require $file;
-        return;
+        return true;
     }
 
     $type = getMimeType($extension);
@@ -17,9 +23,10 @@ if (preg_match('/\.(js|css|json|ico|html|php)$/i', $_SERVER["REQUEST_URI"], $m))
         header('Content-Type: ' . $type);
     }
 
-}
+    echo file_get_contents($file);
 
-echo file_get_contents($file);
+    return true;
+}
 
 function getMimeType(string $extension): ?string
 {
