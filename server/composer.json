@@ -1,17 +1,22 @@
 {
   "name": "djagya/bachelor-search",
   "type": "project",
-  "require": {
-    "ext-pdo": "*",
-    "elasticsearch/elasticsearch": "6.7",
-    "ext-pcntl": "*",
-    "slim/slim": "^3.0"
-  },
   "license": "MIT",
   "authors": [
     {
       "name": "djagya",
       "email": "djagya@fastmail.com"
     }
-  ]
+  ],
+  "require": {
+    "ext-pdo": "*",
+    "elasticsearch/elasticsearch": "6.7",
+    "ext-pcntl": "*",
+    "slim/slim": "^3.0"
+  },
+  "autoload": {
+    "psr-4": {
+      "Search\\": "src/"
+    }
+  }
 }

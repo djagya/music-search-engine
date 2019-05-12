@@ -1,14 +1,11 @@
 <?php
 
 use Elasticsearch\ClientBuilder;
+use Search\EsClient;
 
-require 'vendor/autoload.php';
 include './db.php';
 
-$client = ClientBuilder::create()
-//    ->setHosts(['es01', 'es02']) // in development only es01 is available
-    ->setHosts(['es01'])
-    ->build();
+$client = EsClient::build();
 
 // Temporary make the index more performance for insert.
 $client->indices()->putSettings([

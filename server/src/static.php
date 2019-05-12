@@ -1,31 +1,19 @@
 <?php
 declare(strict_types=1);
 
-function serveStatic(string $clientPath): bool
+function serveStatic(string $clientPath): ?array
 {
-    if (!preg_match('/\.(js|css|json|ico|html|php)$/i', $_SERVER["REQUEST_URI"], $m)) {
-        return false;
+    if (!preg_match('/\.(js|css|json|ico|html)$/i', $_SERVER["REQUEST_URI"], $m)) {
+        return null;
     }
 
     $extension = $m[1];
     $file = $clientPath . $_SERVER["REQUEST_URI"];
     if (!file_exists($file)) {
-        return false;
+        return null;
     }
 
-    if ($extension === 'php') {
-        require $file;
-        return true;
-    }
-
-    $type = getMimeType($extension);
-    if ($type) {
-        header('Content-Type: ' . $type);
-    }
-
-    echo file_get_contents($file);
-
-    return true;
+    return [getMimeType($extension), file_get_contents($file)];
 }
 
 function getMimeType(string $extension): ?string

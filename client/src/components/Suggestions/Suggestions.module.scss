@@ -1,43 +1,22 @@
-.AcInputContainer {
-  margin: 0.25em;
-  width: 12em;
-  position: relative;
-
-  &.opened .Input {
-    border-bottom-left-radius: 0;
-    border-bottom-right-radius: 0;
-
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-  }
-}
-
 $borderRadius: 2px;
-$accentColor: #ef6c00;
-$horizontalSpace: 0.75em;
-
-.Input {
-  background-color: $accentColor;
-  padding: 0.5em $horizontalSpace;
-  border-radius: $borderRadius;
-
-  input {
-    font-size: 1.2em;
-    width: 97%;
-  }
-}
+$accentColor: #ef6c00;$horizontalSpace: 0.75em;
 
 .Suggestions {
   position: absolute;
   width: 100%;
   background-color: #f5f5f5;
-  margin: 0;
-  padding: 0;
-  list-style: none;
 
   border-top: #003d00 3px solid;
   border-bottom: #003d00 3px solid;
   border-bottom-left-radius: $borderRadius;
   border-bottom-right-radius: $borderRadius;
+}
+
+.list {
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 
   li.active {
     background-color: #ffe0b2;
