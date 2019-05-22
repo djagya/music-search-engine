@@ -6,7 +6,50 @@
 
 use Search\EsClient;
 
-require '../vendor/autoload.php';
-
 $client = EsClient::build();
 
+// A raw field is needed to group by the exact property value.
+$rawField = ['type' => 'string', 'index' => 'not_analyzed'];
+
+$result = $client->indices()->create([
+    'index' => 'spins',
+    'body' => [
+
+    ],
+]);
+
+var_dump($result);
+
+$result = $client->indices()->putMapping([
+    'index' => 'spins',
+    'body' => [
+        'properties' => [
+            'artist_name' => [
+                'type' => 'string',
+                'fields' => [
+                    'raw' => $rawField,
+                ],
+            ],
+            'song_name' => [
+                'type' => 'string',
+                'fields' => [
+                    'raw' => $rawField,
+                ],
+            ],
+            'release_title' => [
+                'type' => 'string',
+                'fields' => [
+                    'raw' => $rawField,
+                ],
+            ],
+            'song_composer' => [
+                'type' => 'string',
+                'fields' => [
+                    'raw' => $rawField,
+                ],
+            ],
+        ],
+    ],
+]);
+
+var_dump($result);

@@ -1,21 +1,48 @@
 import axios, { AxiosResponse } from 'axios';
-import { ErrorResponse, RelatedSuggestion, Suggestion, TypingResponse } from './types';
+import { ErrorResponse, SearchResponse, SelectedFields } from './types';
 
-const relatedExample: RelatedSuggestion[] = [
-  { id: 'rel1', value: 'Related 1' },
-  { id: 'rel2', value: 'Related 2' },
-  { id: 'rel3', value: 'Related 3' },
-];
-
-export function fetchSuggestions(field: string, value: string): Promise<TypingResponse | ErrorResponse> {
+export function fetchSuggestions(
+  field: string,
+  value: string,
+  selectedFields: SelectedFields,
+): Promise<SearchResponse | ErrorResponse> {
   return axios
-    .get('/typing', { params: { field, query: value.trim(), meta: 0 } })
-    .then((res: AxiosResponse<TypingResponse>) => {
+    .get('/typing', {
+      params: {
+        field,
+        query: value.trim(),
+        selected: JSON.stringify(getSelectedFieldsData(selectedFields)),
+        meta: 0,
+      },
+    })
+    .then((res: AxiosResponse<SearchResponse>) => {
       return res.data;
     })
     .catch(err => {
       console.log(err);
-      return <ErrorResponse>{ error: JSON.stringify(err) };
+      return { error: JSON.stringify(err) } as ErrorResponse;
+    });
+}
+
+export function fetchRelatedSuggestions(
+  emptyFields: string[],
+  selectedFields: SelectedFields,
+): Promise<SearchResponse | ErrorResponse> {
+  return axios
+    .get('/related', {
+      params: {
+        empty: emptyFields.join(':'),
+        selected: JSON.stringify(getSelectedFieldsData(selectedFields)),
+        meta: 0,
+      },
+    })
+    .then((res: AxiosResponse<SearchResponse>) => {
+      console.log(res);
+      return res.data;
+    })
+    .catch(err => {
+      console.log(err);
+      return { error: JSON.stringify(err) } as ErrorResponse;
     });
 }
 
@@ -23,23 +50,12 @@ interface RequestData {
   [k: string]: string;
 }
 
-export function fetchRelatedSuggestions(
-  field: string,
-  selectedFields: { [k: string]: Suggestion | null },
-): Promise<RelatedSuggestion[]> {
-  const data: RequestData = Object.keys(selectedFields).reduce((res: RequestData, k: string) => {
-    res[k] = selectedFields[k]!.id;
+function getSelectedFieldsData(selectedFields: SelectedFields): RequestData {
+  // Map of {fieldName: selected value}
+  return Object.keys(selectedFields).reduce((res: RequestData, k: string) => {
+    if (selectedFields[k]) {
+      res[k] = selectedFields[k]!.value;
+    }
     return res;
   }, {});
-
-  return axios
-    .get('/related', { params: { f: field, q: data } })
-    .then(res => {
-      console.log(res);
-      return res.data || [];
-    })
-    .catch(err => {
-      console.log(err);
-      return relatedExample;
-    });
 }

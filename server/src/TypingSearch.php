@@ -2,7 +2,7 @@
 
 namespace Search;
 
-class TypingSearch
+class TypingSearch extends BaseSearch
 {
     const FIELD_COLUMN_MAP = [
         'artist' => 'artist_name',
@@ -14,21 +14,21 @@ class TypingSearch
     protected $field;
     protected $withMeta = true;
 
-    public function __construct(string $field, bool $withMeta = true)
+    public function __construct(string $field, array $selected = [], bool $withMeta = true)
     {
         if (!array_key_exists($field, self::FIELD_COLUMN_MAP)) {
             throw new \InvalidArgumentException("Invalid field {$field}");
         }
         $this->field = $field;
-        $this->withMeta = $withMeta;
+
+        parent::__construct([$field], $selected, $withMeta);
     }
 
     /**
      * todo: how do we return the result?
-     * todo: describe aggregation and why we need it here.
      *
-     * The result data contains the auto-complete suggestions for the given query and a list of ids which match the suggestion.
-     * For example for the $field = "song" and $query = "Love", a set of items is returned:
+     * The result data contains the auto-complete suggestions for the given query and a list of ids which match the
+     * suggestion. For example for the $field = "song" and $query = "Love", a set of items is returned:
      * [
      *  [ids => [pk1, pk2, ...], $column => 'love'],
      *  [ids => [pk3, pk4, ...], $column => 'live'],
@@ -36,18 +36,10 @@ class TypingSearch
      *  ...
      * ]
      *
-     * todo: Describe that we don't want to build a list of related ids unless user selects on of the suggestions.
-     * related => [
-     *      release => [pk1, pk7, ...],
-     *      artist => [pk1, pk4, ...],
-     *      composer => [pk4, pk8, ...],
-     *  ]
+     * todo: how to represent pk? Once we introduce EPF data, items might come from different indexes, so a pk would be
+     * (index name, id).
      *
-     * todo: how to represent pk? Once we introduce EPF data, items might come from different indexes, so a pk would be (index name, id).
-     *
-     * todo: what type of search do we use?
-     * should it be a suggester? on low level it would be a combination of: 1) exact phrase match, 2) term match, 3) fuzzy match
-     * since we have Unicode, we'll use trigrams probably?
+     * todo: what type of search do we use? follow the guide.
      *
      * todo: don't run search on $query length <=2 ?
      *
@@ -57,11 +49,49 @@ class TypingSearch
     public function search(string $query): array
     {
         $column = self::FIELD_COLUMN_MAP[$this->field];
-        $select = ['id', $column];
+
+        // Filter by selected.
+        // todo: probably filter not by raw but by
+        $selectedMatch = [];
+        foreach ($this->selectedFields as $field => $value) {
+            $column = self::FIELD_COLUMN_MAP[$field];
+            $selectedMatch[] = ['term' => ["$column.raw" => $value]];
+        }
+
+        // Match by typed $query.
+        $match = [
+            'match' => [$column => $query],
+        ];
+
+        // Match on the typingResponse field and filter by selected fields if they are specified.
+        $query = $selectedMatch ? [
+            'bool' => [
+                'filter' => $selectedMatch,
+                'must' => [$match],
+            ],
+        ] : $match;
+
         $body = [
-            'query' => [
-                'match' => [
-                    $column => $query
+            // The query body.
+            'query' => $query,
+            'aggs' => [
+                // Bucket results based on the original value - makes a list of unique $column name buckets.
+                // "term" type aggregation takes "size" top results and make unique buckets.
+                'uniqueValue' => [
+                    'terms' => [
+                        // todo: need to aggregate ignoring case of returned hits. take item what name variation in the group? probably just the first in a bucket
+                        // todo: or have another field for lowercase, aggregate by it but show the first of bucket
+                        'field' => $column . '.raw',
+                        'order' => ['maxScore' => 'desc'],
+                    ],
+                    // Nested aggregation to make ordering by best match score possible.
+                    'aggs' => [
+                        'maxScore' => [
+                            'max' => [
+                                'script' => ['source' => '_score'],
+                            ],
+                        ],
+                    ],
                 ],
             ],
         ];
@@ -69,44 +99,18 @@ class TypingSearch
         $result = EsClient::build()->search([
             'index' => 'spins',
             'body' => $body,
-            '_source' => $select,
+            '_source' => ['id', $column],
+            // todo: set the limit?
         ]);
 
         return $this->formatResult($result);
     }
 
-    /**
-     * todo: decide what format is suitable for the client
-     *
-     * @param array $result
-     * @return array
-     */
-    protected function formatResult(array $result): array
-    {
-        if ($this->withMeta) {
-            return $result;
-        }
-
-        $hits = $result['hits']['hits'];
-        $maxScore = $result['hits']['max_score'];
-        $total = $result['hits']['total'];
-
-
-        return [
-            'maxScore' => $maxScore,
-            'total' => $total,
-            'hits' => array_map(\Closure::fromCallable([$this, 'formatHit']), $hits),
-        ];
-    }
-
     protected function formatHit(array $item): array
     {
-        return [
-            '_id' => $item['_id'],
-            '_index' => $item['_index'],
-            '_score' => $item['_score'],
-            'id' => $item['_source']['id'],
+        return array_merge(parent::formatHit($item), [
             'value' => $item['_source'][self::FIELD_COLUMN_MAP[$this->field]],
-        ];
+        ]);
     }
+
 }

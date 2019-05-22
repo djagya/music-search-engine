@@ -1,20 +1,31 @@
-export interface TypingResponse {
+export interface SearchResponse {
   maxScore: number;
   total: { value: number; relation: string };
   hits: Suggestion[];
+  aggregations: Suggestion[];
 }
 
 // todo: what other information is needed? relations, number of results, score?...
-// todo: it must have "ids" field for items grouped by value, not "id".
 export interface Suggestion {
-  _id: string;
-  _index: string;
-  _score: number;
-  id: string;
+  id: string; // ES id or random id generated on server for aggregated suggestions
   value: string;
-  // The list of items ids which have the exact same "value".
-  ids: string;
+  score: number;
+  count: number;
+
+  _id?: string; // internal DB id
+  _index?: string;
+  values?: { [field: string]: string };
 }
+
+
+export interface RelatedResponse {
+  fields: { [field: string]: SearchResponse };
+}
+
+export interface SelectedFields {
+  [name: string]: Suggestion | null;
+}
+
 
 export interface RelatedSuggestion {
   id: string;
@@ -23,5 +34,5 @@ export interface RelatedSuggestion {
 }
 
 export interface ErrorResponse {
-    error: string;
+  error: string;
 }

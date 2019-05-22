@@ -1,6 +1,8 @@
 <?php
 declare(strict_types=1);
 
+use Search\Indexes;
+use Search\RelatedSearch;
 use Search\TypingSearch;
 use Slim\Http\Request;
 use Slim\Http\Response;
@@ -33,7 +35,7 @@ $app->add(function (Request $request, Response $response, $next) use ($clientPat
 });
 
 /**
- * When typing, autocomplete, show suggestions.
+ * When typingResponse, autocomplete, show suggestions.
  */
 $app->get('/typing', function (Request $request, Response $response) {
     $field = $request->getQueryParam('field');
@@ -44,17 +46,36 @@ $app->get('/typing', function (Request $request, Response $response) {
     if (!$query) {
         throw new InvalidArgumentException('"query" url query param is required');
     }
+    $selected = json_decode($request->getQueryParam('selected', ''), true) ?: [];
 
-    $search = new TypingSearch((string)$field, (bool)$request->getQueryParam('meta', true));
-    $result = $search->search((string)$query);
+    $search = new TypingSearch((string) $field, $selected, (bool) $request->getQueryParam('meta', true));
+    $result = $search->search((string) $query);
 
     return $response->withJson($result);
 });
 
 /**
- * When a suggestions selected, search for related documents for other fields.
+ * When a suggestions selected, search for relatedResponse documents for other fields.
  */
 $app->get('/related', function (Request $request, Response $response, array $args) {
+    $empty = explode(':', $request->getQueryParam('empty', ''));
+    if (!$empty) {
+        throw new InvalidArgumentException('"empty" url query param must contain at least one field');
+    }
+    $selected = json_decode($request->getQueryParam('selected', ''), true);
+    if (!$selected) {
+        throw new InvalidArgumentException('"selected" url query param must contain at least one field => value pair');
+    }
+
+    $search = new RelatedSearch($empty, $selected, (bool) $request->getQueryParam('meta', true));
+    $result = $search->search();
+
+    return $response->withJson($result);
+});
+
+$app->get('/init', function () {
+    echo "Init indexes\n";
+    Indexes::createSpins();
 });
 
 /**

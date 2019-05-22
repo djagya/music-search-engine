@@ -14,10 +14,15 @@ To start the stack also rebuilding the `app` image:
 docker-composer up --build
 ```
 
-# Load data in the 'db' container
-Put the gzipped data dump in `./data`, load the dump:
+# Load data
+To load a data dump to the db put the gzipped dump in `./data`, load the dump:
 ```bash
 docker-compose exec db bash /root/data/load.sh
+```
+
+To drop the indexes, configure and ingest them again:
+```bash
+docker-compose exec app php server/harvest.php
 ```
 
 # Run
