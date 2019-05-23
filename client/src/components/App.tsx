@@ -4,6 +4,7 @@ import {SearchResponse, SelectedFields, Suggestion} from '../types';
 import {fetchRelatedSuggestions, fetchSuggestions} from '../data';
 import ErrorBoundary from './ErrorBoundary';
 import AcInput from './AcInput/AcInput';
+import InstanceStatus from "./InstanceStatus";
 
 const fields: string[] = ['artist', 'song', 'release', 'composer'];
 const defaultList = {
@@ -97,6 +98,10 @@ function App() {
     <div className={styles.App}>
       <div className={styles.container}>
         <h1 className={styles.header}>Search</h1>
+
+        <div className={styles.instance}>
+          <span>AWS instance</span> &nbsp; <InstanceStatus />
+        </div>
 
         <div className={styles.Form}>
           {fields.map((field: string) => (

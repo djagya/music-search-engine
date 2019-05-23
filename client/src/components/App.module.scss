@@ -1,3 +1,5 @@
+$spacing: 0.5em;
+
 .App {
   display: flex;
   justify-content: center;
@@ -5,10 +7,11 @@
 
 .container {
   margin-top: 50px;
-  padding: 0.5em;
+  padding: $spacing;
   background-color: #fafafa;
   border-radius: 3px;
   flex-grow: 0;
+  position: relative;
 }
 
 .header {
@@ -22,4 +25,10 @@
   display: flex;
   flex-direction: row;
   margin: 0 auto;
+}
+
+.instance {
+  position: absolute;
+  right: $spacing;
+  top: $spacing;
 }
