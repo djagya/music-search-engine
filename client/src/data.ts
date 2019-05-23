@@ -1,6 +1,8 @@
 import axios, { AxiosResponse } from 'axios';
 import { ErrorResponse, SearchResponse, SelectedFields } from './types';
 
+let useAws = false;
+
 export function fetchSuggestions(
   field: string,
   value: string,
@@ -13,6 +15,7 @@ export function fetchSuggestions(
         query: value.trim(),
         selected: JSON.stringify(getSelectedFieldsData(selectedFields)),
         meta: 0,
+        aws: useAws,
       },
     })
     .then((res: AxiosResponse<SearchResponse>) => {
@@ -34,6 +37,7 @@ export function fetchRelatedSuggestions(
         empty: emptyFields.join(':'),
         selected: JSON.stringify(getSelectedFieldsData(selectedFields)),
         meta: 0,
+        aws: useAws,
       },
     })
     .then((res: AxiosResponse<SearchResponse>) => {
@@ -58,4 +62,9 @@ function getSelectedFieldsData(selectedFields: SelectedFields): RequestData {
     }
     return res;
   }, {});
+}
+
+// todo: for now this hacky "singleton"
+export function setUseAws(use: boolean = false) {
+  useAws = use;
 }

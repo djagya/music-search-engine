@@ -1,7 +1,7 @@
-import React, {useState} from 'react';
+import React, { useState } from 'react';
 import styles from './App.module.scss';
-import {SearchResponse, SelectedFields, Suggestion} from '../types';
-import {fetchRelatedSuggestions, fetchSuggestions} from '../data';
+import { SearchResponse, SelectedFields, Suggestion } from '../types';
+import { fetchRelatedSuggestions, fetchSuggestions, setUseAws } from '../data';
 import ErrorBoundary from './ErrorBoundary';
 import AcInput from './AcInput/AcInput';
 import InstanceStatus from "./InstanceStatus";
@@ -38,10 +38,10 @@ function App() {
           if ('error' in res) {
             throw new Error(res.error);
           }
-          setTyping({...typingResponses, [name]: res});
+          setTyping({ ...typingResponses, [name]: res });
         });
       } else {
-        setTyping({...typingResponses, [name]: null});
+        setTyping({ ...typingResponses, [name]: null });
       }
     };
   }
@@ -52,7 +52,7 @@ function App() {
    */
   function selectionHandler(name: string) {
     return (suggestion: Suggestion) => {
-      const selected = {...fieldsSelected, [name]: suggestion};
+      const selected = { ...fieldsSelected, [name]: suggestion };
       // What fields to return.
       const empty = fields.filter(f => !(f in selected) || !selected[f]);
 
@@ -66,7 +66,7 @@ function App() {
         }
         // todo: for now one list containing all fields and their suggestions is used, so temporary use 'name' = 'all'
         // setRelated({ ...relatedResponses, [name]: res });
-        setRelated({...relatedResponses, all: res});
+        setRelated({ ...relatedResponses, all: res });
       });
     };
   }
@@ -100,7 +100,7 @@ function App() {
         <h1 className={styles.header}>Search</h1>
 
         <div className={styles.instance}>
-          <span>AWS instance</span> &nbsp; <InstanceStatus />
+          <span>AWS instance &nbsp;</span> <InstanceStatus onChange={(v) => setUseAws(v)} />
         </div>
 
         <div className={styles.Form}>

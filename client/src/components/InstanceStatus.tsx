@@ -1,9 +1,9 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import styles from './InstanceStatus.module.scss';
-import {cx} from '../ui';
+import { cx } from '../ui';
 
-export default function InstanceStatus() {
+export default function InstanceStatus({ onChange }: { onChange: { (v: boolean): void } }) {
   const [isRunning, setStatus] = useState<boolean>(false);
   const [isLoading, setLoading] = useState<boolean>(false);
 
@@ -21,10 +21,14 @@ export default function InstanceStatus() {
       });
   }, []);
 
+  useEffect(() => {
+    onChange(isRunning);
+  }, [isRunning]);
+
   function handleChange() {
     setLoading(true);
     axios
-      .post('/instance', {start: !isRunning})
+      .post('/instance', { start: !isRunning })
       .then(res => {
         setStatus(res.data.running === true);
         setLoading(false);

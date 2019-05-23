@@ -31,4 +31,9 @@ $spacing: 0.5em;
   position: absolute;
   right: $spacing;
   top: $spacing;
+
+  span {
+    color: #666666;
+    font-size: 0.9em;
+  }
 }
