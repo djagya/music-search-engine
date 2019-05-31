@@ -16,22 +16,12 @@ interface AcInputProps {
   onSelect: { (suggestion: Suggestion): void };
 }
 
+/**
+ * A field input with autocomplete support.
+ */
 export default function AcInput(props: AcInputProps) {
   const [value, setValue] = useState('');
-
   const {name, isActive, typingResponse, relatedResponse, selected, onTyping, onSelect} = props;
-
-  function handleChange(e: FormEvent) {
-    const value = ((e.target as HTMLInputElement).value || '').trim();
-    setValue(value);
-    onTyping(value);
-  }
-
-  useEffect(() => {
-    if (selected) {
-      setValue(selected.value);
-    }
-  }, [name, selected]);
 
   // Related values use hits, not aggregations. Filter out empty values.
   const relatedWithValue = relatedResponse && {
@@ -43,6 +33,25 @@ export default function AcInput(props: AcInputProps) {
   // Display if current input is active and there's typing response or if there's a related response.
   const showSuggestions = Boolean(hasRelatedItems || (isActive && typingResponse));
   const className = cx(styles.AcInputContainer, showSuggestions && styles.opened);
+
+  /**
+   * Update the text input with the selected suggestion.
+   */
+  useEffect(() => {
+    if (selected) {
+      setValue(selected.value);
+    }
+  }, [name, selected]);
+
+  /**
+   * On input change update the state and request autocomplete suggestions.
+   * @param e
+   */
+  function handleChange(e: FormEvent) {
+    const value = ((e.target as HTMLInputElement).value || '').trim();
+    setValue(value);
+    onTyping(value);
+  }
 
   return (
     <div className={className}>

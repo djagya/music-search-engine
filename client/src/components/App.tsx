@@ -4,20 +4,25 @@ import { SearchResponse, SelectedFields, Suggestion } from '../types';
 import { fetchRelatedSuggestions, fetchSuggestions, setUseAws } from '../data';
 import ErrorBoundary from './ErrorBoundary';
 import AcInput from './AcInput/AcInput';
-import InstanceStatus from "./InstanceStatus";
+import InstanceStatus from './InstanceStatus';
 
 const fields: string[] = ['artist', 'song', 'release', 'composer'];
 const defaultList = {
   artist: null,
   song: null,
   release: null,
-  composer: null,
+  composer: null
 };
 
 interface FieldsSearchResponse {
   [fields: string]: SearchResponse | null;
 }
 
+/**
+ * The main data-entry app gives four input fields, each of them provides:
+ * - autocomplete suggestion support
+ * - related suggestions support, i.e. request empty fields suggestions related to the filled fields
+ */
 function App() {
   // todo: new idea. maybe the list of relatedResponse suggestions should be just one, based on the current state of selected fields?
   const [typingResponses, setTyping] = useState<FieldsSearchResponse>(defaultList);
@@ -27,8 +32,7 @@ function App() {
   const [activeField, setActiveField] = useState<string | null>();
 
   /**
-   * GET autocomplete suggestion for the field.
-   * @param name
+   * GET autocomplete suggestions for the field.
    */
   function typingHandler(name: string) {
     return (value: string) => {
@@ -47,8 +51,7 @@ function App() {
   }
 
   /**
-   * GET related items based on the selected inputs for all empty fields.
-   * @param name
+   * GET related suggestions for empty fields based on the selected AC suggestions in filled fields.
    */
   function selectionHandler(name: string) {
     return (suggestion: Suggestion) => {
@@ -100,7 +103,8 @@ function App() {
         <h1 className={styles.header}>Search</h1>
 
         <div className={styles.instance}>
-          <span>AWS instance &nbsp;</span> <InstanceStatus onChange={(v) => setUseAws(v)} />
+          <span>AWS instance &nbsp;</span>
+          <InstanceStatus onChange={(v) => setUseAws(v)}/>
         </div>
 
         <div className={styles.Form}>

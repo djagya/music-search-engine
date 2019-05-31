@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use Aws\Ec2\Ec2Client;
 use Search\Indexes;
 use Search\RelatedSearch;
 use Search\TypingSearch;
@@ -76,6 +77,53 @@ $app->get('/related', function (Request $request, Response $response, array $arg
 $app->get('/init', function () {
     echo "Init indexes\n";
     Indexes::createSpins();
+});
+
+/**
+ * GET Instance status.
+ * https://docs.aws.amazon.com/en_us/AWSEC2/latest/APIReference/API_DescribeInstanceStatus.html
+ */
+$app->get('/instance', function (Request $request, Response $response) {
+    $client = new Ec2Client([
+        'region' => 'eu-central-1',
+        'credentials' => ['key' => 'AKIARDAFFXQCAXG3XDMG', 'secret' => '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'],
+        'version' => 'latest',
+    ]);
+    $res = $client->describeInstanceStatus([
+        'InstanceId.1' => 'i-0944a300ec006cf83',
+    ]);
+
+    $body = [
+        'running' => ($res->toArray()['InstanceStatuses'][0]['InstanceState']['Code'] ?? null) === 16,
+        'response' => $res->toArray(),
+    ];
+
+    return $response->withJson($body);
+});
+
+/**
+ * Start/stop the instances.
+ * https://docs.aws.amazon.com/en_us/AWSEC2/latest/APIReference/API_StartInstances.html
+ */
+$app->post('/instance', function (Request $request, Response $response) {
+    $start = $request->getParsedBodyParam('start', false);
+    $client = new Ec2Client([
+        'region' => 'eu-central-1',
+        'credentials' => ['key' => 'AKIARDAFFXQCAXG3XDMG', 'secret' => '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'],
+        'version' => 'latest',
+    ]);
+
+    $body = [
+        'InstanceIds' => ['InstanceId.1' => 'i-0944a300ec006cf83'],
+    ];
+
+    if ($start) {
+        $result = $client->startInstances($body);
+    } else {
+        $result = $client->stopInstances($body);
+    }
+
+    return $response->withJson($result->toArray());
 });
 
 /**
