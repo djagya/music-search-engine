@@ -9,7 +9,7 @@ EXPOSE 80
 # Nodejs repo
 RUN curl -sL https://deb.nodesource.com/setup_12.x | bash -
 
-RUN apt-get update && apt-get install -y mysql-client nodejs
+RUN apt-get update && apt-get install -y mysql-client nodejs git
 RUN docker-php-ext-install pdo pdo_mysql pcntl
 
 # PHP config
