@@ -4,5 +4,3 @@ aws-credentials.csv
 bachelor-search.pem
 .env
 
-data/*
-!data/load.sh

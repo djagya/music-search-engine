@@ -14,10 +14,11 @@ if (!$index) {
 
 Indexes::init($index);
 
+$forks = 5;
 if ($index === Indexes::SPINS_IDX) {
-    SpinsHarvester::run(1);
+    SpinsHarvester::run($forks);
 } elseif ($index === Indexes::EPF_IDX) {
-    EpfHarvester::run(1);
+    EpfHarvester::run($forks);
 } else {
     echo "Invalid index\n";
 }

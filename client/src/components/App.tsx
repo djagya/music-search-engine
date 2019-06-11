@@ -6,6 +6,8 @@ import ErrorBoundary from './ErrorBoundary';
 import AcInput from './AcInput/AcInput';
 import InstanceStatus from './InstanceStatus';
 
+const MIN_PREFIX_LENGTH = 3;
+
 const fields: string[] = ['artist', 'song', 'release', 'composer'];
 const defaultList = {
   artist: null,
@@ -37,7 +39,7 @@ function App() {
   function typingHandler(name: string) {
     return (value: string) => {
       // todo: when there's some selected fields, send them in the request so we can filter on them like for relatedResponse suggestions
-      if (value) {
+      if (value && value.length < MIN_PREFIX_LENGTH) {
         fetchSuggestions(name, value, fieldsSelected).then(res => {
           if ('error' in res) {
             throw new Error(res.error);
@@ -99,7 +101,7 @@ function App() {
 
   return (
     <div className={styles.App}>
-      <div className={styles.container}>
+      <Panel>
         <h1 className={styles.header}>Search</h1>
 
         <div className={styles.instance}>
@@ -112,9 +114,32 @@ function App() {
             <ErrorBoundary key={field}>{renderAcInput(field)}</ErrorBoundary>
           ))}
         </div>
-      </div>
+      </Panel>
+
+      <Preview>
+        <h3 className={styles.header}>Data preview</h3>
+
+        <Metadata selected={fieldsSelected}/>
+      </Preview>
     </div>
   );
 }
 
 export default App;
+
+function Panel({ children }: { children: JSX.Element[] }) {
+  return <div className={styles.Panel}>{children}</div>;
+}
+
+function Preview({ children }: { children: JSX.Element[] }) {
+  return <div className={styles.Preview}>{children}</div>;
+}
+
+function Metadata({ selected }: { selected: SelectedFields }) {
+  return <div>
+    {Object.keys(selected).filter(f => !!selected[f]).map(f => <p key={f}>
+      <b>{f}</b>
+      {JSON.stringify(selected[f]!.data)}
+    </p>)}
+  </div>;
+}

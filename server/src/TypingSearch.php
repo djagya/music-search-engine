@@ -97,7 +97,7 @@ class TypingSearch extends BaseSearch
         ];
 
         $result = EsClient::build()->search([
-            'index' => 'spins',
+            'index' => implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
             'body' => $body,
             '_source' => ['id', $column],
             // todo: set the limit?

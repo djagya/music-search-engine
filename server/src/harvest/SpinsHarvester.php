@@ -5,6 +5,7 @@ namespace Search\harvest;
 
 use Search\Db;
 use Search\EsClient;
+use Search\Indexes;
 
 /**
  * When harvesting Spins, their original ids are used as ES "_id" field.
@@ -12,7 +13,7 @@ use Search\EsClient;
  */
 class SpinsHarvester extends BaseHarvester
 {
-    const INDEX_NAME = 'spins';
+    const INDEX_NAME = Indexes::SPINS_IDX;
 
     static private $totalCount = 0;
     static private $startFromId = 0;
@@ -46,7 +47,7 @@ class SpinsHarvester extends BaseHarvester
 
     protected function getQuery(): string
     {
-        return  'select * from spins where id > ' . self::$startFromId . ' limit ? offset ?';
+        return 'select * from spins where id > ' . self::$startFromId . ' limit ? offset ?';
     }
 
     protected function generateId(): bool
@@ -84,6 +85,6 @@ class SpinsHarvester extends BaseHarvester
             'cover_art_url',
         ];
 
-        return array_intersect_assoc($row, array_flip($fields));
+        return array_intersect_key($row, array_flip($fields));
     }
 }

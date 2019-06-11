@@ -28,11 +28,11 @@ services:
     ports:
       - 3306:3306
     mem_limit: ${DB_MEM}
-    command: --key-buffer-size=${DB_MYISAM_CACHE} --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - data-volume:/var/lib/mysql:cached # persist the db
+      - ./configs:/etc/mysql/conf.d
       - ./data:/root/data # give access to dump files so we can load it when needed directly inside the container
     networks:
       - mainnet
@@ -48,7 +48,7 @@ services:
     environment:
       MYSQL_HOST: db
       ES_HOST: es01
-      RUN_SERVER: 0
+      RUN_SERVER: 1
       CHECK_DB: 1
     stdin_open: true
     tty: true

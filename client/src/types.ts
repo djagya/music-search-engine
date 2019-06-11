@@ -11,6 +11,7 @@ export interface Suggestion {
   value: string;
   score: number;
   count: number;
+  data?: { [attr: string]: string };
 
   _id?: string; // internal DB id
   _index?: string;

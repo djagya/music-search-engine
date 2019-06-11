@@ -11,7 +11,7 @@ if [[ "$CHECK_DB" -eq "1" ]]; then
         -e "create database if not exists epf character set utf8mb4 collate utf8mb4_unicode_ci;"
 fi
 
-if [[ "$RUN_SERVER" -eq "0" ]]; then
+if [[ "$RUN_SERVER" -eq "1" ]]; then
     echo "Start server"
     nohup php -S 0.0.0.0:80 -t client/build server/index.php > logs/server.log 2>&1 &
 fi

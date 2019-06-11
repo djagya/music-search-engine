@@ -4,10 +4,11 @@ declare(strict_types=1);
 namespace Search\harvest;
 
 use Search\Db;
+use Search\Indexes;
 
 class EpfHarvester extends BaseHarvester
 {
-    const INDEX_NAME = 'music';
+    const INDEX_NAME = Indexes::EPF_IDX;
 
     protected function getDb(): \PDO
     {

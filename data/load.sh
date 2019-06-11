@@ -6,7 +6,7 @@ if [[ "$1" == "spins" ]]; then
     echo "Ingesting music DB with spins dump"; echo
 
     mysql -uroot -proot -e "show databases like 'music';"
-    gunzip ${DIR}/spins.sql.gz | mysql -uroot -proot music
+    yes y | gunzip -c ${DIR}/spins.sql.gz | mysql -uroot -proot music
 
     exit
 fi

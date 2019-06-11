@@ -23,7 +23,7 @@ export default function InstanceStatus({ onChange }: { onChange: { (v: boolean):
 
   useEffect(() => {
     onChange(isRunning);
-  }, [isRunning]);
+  }, [isRunning, onChange]);
 
   function handleChange() {
     setLoading(true);
@@ -42,8 +42,8 @@ export default function InstanceStatus({ onChange }: { onChange: { (v: boolean):
   return (
     <div className={cx(styles.container, isRunning && styles.active, isLoading && styles.loading)}>
       <label className={styles.switch}>
-        <input type="checkbox" checked={isRunning} onChange={handleChange} />
-        <span className={styles.switcher} />
+        <input type="checkbox" checked={isRunning} onChange={handleChange}/>
+        <span className={styles.switcher}/>
       </label>
 
       <small className={styles.info}>{isLoading ? 'loading' : isRunning ? 'running' : 'stopped'}</small>

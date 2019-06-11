@@ -9,8 +9,8 @@ abstract class BaseHarvester
 {
     const INDEX_NAME = '';
 
-    const BATCH_SIZE = 5000;
-    const DEV_LIMIT = 1000000;
+    const BATCH_SIZE = 2500;
+    const DEV_LIMIT = 200000;
 
     protected $forkN;
     protected $totalForks;
@@ -25,14 +25,14 @@ abstract class BaseHarvester
 
         // Fork multiple processes to make concurrent API requests
         $forks = [];
-        for ($i = 1; $i <= $forksCount; $i++) {
+        for ($i = 0; $i < $forksCount; $i++) {
             $forks[] = pcntl_fork();
             if (!$forks[$i]) {
                 // Here runs the children.
                 echo "Children #$i: starting the harvester\n";
                 $harvester = new static($i, $forksCount);
                 $harvester->harvest();
-                break;
+                return;
             }
         }
         // Wait for all forks to finish.
@@ -51,7 +51,7 @@ abstract class BaseHarvester
     {
         // Temporary make the index more performance for insert.
         EsClient::build()->indices()->putSettings([
-            'index' => self::INDEX_NAME,
+            'index' => static::INDEX_NAME,
             'body' => [
                 'refresh_interval' => -1,
                 'number_of_replicas' => 0,
@@ -67,7 +67,7 @@ abstract class BaseHarvester
         $client = EsClient::build();
         // Change the settings back.
         $client->indices()->putSettings([
-            'index' => self::INDEX_NAME,
+            'index' => static::INDEX_NAME,
             'body' => [
                 'refresh_interval' => null,
                 // 'number_of_replicas' => 1, // todo: temporary disable replicas to make development faster
@@ -75,7 +75,7 @@ abstract class BaseHarvester
         ]);
 
         // Update replicas.
-        $client->indices()->forceMerge(['index' => self::INDEX_NAME]);
+        $client->indices()->forceMerge(['index' => static::INDEX_NAME]);
     }
 
     /**
@@ -106,7 +106,7 @@ abstract class BaseHarvester
 
         $query = $this->getQuery();
         $params = [
-            'index' => self::INDEX_NAME,
+            'index' => static::INDEX_NAME,
             'body' => []
         ];
         do {
@@ -118,7 +118,7 @@ abstract class BaseHarvester
             foreach ($rows->fetchAll() as $row) {
                 $params['body'][] = [
                     'index' => [
-                        '_index' => self::INDEX_NAME,
+                        '_index' => static::INDEX_NAME,
                         '_id' => $this->generateId() ? null : $row['id']
                     ]
                 ];
@@ -140,6 +140,7 @@ abstract class BaseHarvester
 
             // todo: for now index only 1m spins to not spend time every time i change the index definition
             if ($offset > static::DEV_LIMIT) {
+                echo "Dev limit $offset > " . static::DEV_LIMIT . "\n";
                 return;
             }
         } while (!empty($rows));

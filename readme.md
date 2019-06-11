@@ -166,7 +166,7 @@ Accepted params:
 
 
 
-
+**To check memory/cpu usage stats:** `docker stats`
 
 
 
