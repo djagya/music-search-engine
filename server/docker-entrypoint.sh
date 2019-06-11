@@ -12,9 +12,9 @@ if [[ "$CHECK_DB" -eq "1" ]]; then
 fi
 
 if [[ "$RUN_SERVER" -eq "1" ]]; then
-    echo "Start server"
-    nohup php -S 0.0.0.0:80 -t client/build server/index.php > logs/server.log 2>&1 &
+    echo "Start nginx and run php-fpm"
+    service nginx start
+
+    php-fpm
 fi
 
-# Prevent immediate exit of the container
-tail -f /dev/null

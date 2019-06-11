@@ -2,14 +2,12 @@
 declare(strict_types=1);
 
 use Aws\Ec2\Ec2Client;
-use Search\Indexes;
 use Search\RelatedSearch;
 use Search\TypingSearch;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
 require 'vendor/autoload.php';
-require 'src/static.php';
 
 $clientPath = __DIR__ . '/../client/build';
 
@@ -18,22 +16,16 @@ if (PHP_SAPI == 'cli-server') {
     $_SERVER['SCRIPT_NAME'] = '/server.php';
 }
 
-$app = new Slim\App(['settings' => ['displayErrorDetails' => true]]);
-
-/**
- * Serve static assets.
- */
-$app->add(function (Request $request, Response $response, $next) use ($clientPath) {
-    // Check if the requested file exists and can be served as a static asset.
-    $static = serveStatic($clientPath);
-    if (!$static) {
-        return $next($request, $response);
-    }
-
-    return $response
-        ->withHeader('Content-Type', $static[0])
-        ->write($static[1]);
-});
+$app = new Slim\App([
+    'settings' => [
+        'displayErrorDetails' => true,
+        'logger' => [
+            'name' => 'slim-app',
+            'level' => Monolog\Logger::INFO,
+            'path' => __DIR__ . '/../logs/app.log',
+        ],
+    ]
+]);
 
 /**
  * When typingResponse, autocomplete, show suggestions.
@@ -49,8 +41,8 @@ $app->get('/typing', function (Request $request, Response $response) {
     }
     $selected = json_decode($request->getQueryParam('selected', ''), true) ?: [];
 
-    $search = new TypingSearch((string) $field, $selected, (bool) $request->getQueryParam('meta', true));
-    $result = $search->search((string) $query);
+    $search = new TypingSearch((string)$field, $selected, (bool)$request->getQueryParam('meta', true));
+    $result = $search->search((string)$query);
 
     return $response->withJson($result);
 });
@@ -68,15 +60,10 @@ $app->get('/related', function (Request $request, Response $response, array $arg
         throw new InvalidArgumentException('"selected" url query param must contain at least one field => value pair');
     }
 
-    $search = new RelatedSearch($empty, $selected, (bool) $request->getQueryParam('meta', true));
+    $search = new RelatedSearch($empty, $selected, (bool)$request->getQueryParam('meta', true));
     $result = $search->search();
 
     return $response->withJson($result);
-});
-
-$app->get('/init', function () {
-    echo "Init indexes\n";
-    Indexes::createSpins();
 });
 
 /**
