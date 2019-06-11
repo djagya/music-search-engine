@@ -5,14 +5,12 @@ services:
     container_name: es01
     environment:
       - node.name=es01
-      #      - discovery.seed_hosts=es02
-      #      - cluster.initial_master_nodes=es01,es02
       - cluster.initial_master_nodes=es01
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms2G -Xmx2G"
-    mem_limit: 3G
-    memswap_limit: 3G
+      - "ES_JAVA_OPTS=-Xms${ES_JAVA_MEM} -Xmx${ES_JAVA_MEM}"
+    mem_limit: ${ES_MEM}
+    memswap_limit: 0
     ulimits:
       memlock:
         soft: -1
@@ -22,42 +20,22 @@ services:
     ports:
       - 9200:9200
     networks:
-      - esnet
-  # Second node is disabled during development.
-  #  es02:
-  #    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
-  #    container_name: es02
-  #    environment:
-  #      - node.name=es02
-  #      - discovery.seed_hosts=es01
-  #      - cluster.initial_master_nodes=es01,es02
-  #      - cluster.name=docker-cluster
-  #      - bootstrap.memory_lock=true
-  #      - "ES_JAVA_OPTS=-Xms2G -Xmx2G"
-  #    mem_limit: 3G
-  #    memswap_limit: 3G
-  #    ulimits:
-  #      memlock:
-  #        soft: -1
-  #        hard: -1
-  #    volumes:
-  #      - esdata02:/usr/share/elasticsearch/data
-  #    networks:
-  #      - esnet
+      - mainnet
   db:
     container_name: db
     image: mariadb:latest
     restart: on-failure
     ports:
       - 3306:3306
-    #mem_limit: 8G
+    mem_limit: ${DB_MEM}
+    command: --key-buffer-size=${DB_MYISAM_CACHE} --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
     environment:
       MYSQL_ROOT_PASSWORD: root
     volumes:
       - data-volume:/var/lib/mysql:cached # persist the db
       - ./data:/root/data # give access to dump files so we can load it when needed directly inside the container
     networks:
-      - esnet
+      - mainnet
 
   app:
     container_name: app
@@ -69,24 +47,22 @@ services:
       - db
     environment:
       MYSQL_HOST: db
-      RUN_SERVER: false
-      CHECK_DB: true
+      ES_HOST: es01
+      RUN_SERVER: 0
+      CHECK_DB: 1
     stdin_open: true
     tty: true
     volumes:
       - ./:/app:cached # todo: for development mode the content of the image will be overwritten by syncing with the current dir
-    #      - data-volume:/data
     networks:
-      - esnet
+      - mainnet
 
 
 volumes:
   esdata01:
     driver: local
-  esdata02:
-    driver: local
   data-volume:
     driver: local
 
 networks:
-  esnet:
+  mainnet:

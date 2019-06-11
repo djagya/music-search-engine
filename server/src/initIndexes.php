@@ -42,12 +42,13 @@ $result = $client->indices()->putMapping([
                     'raw' => $rawField,
                 ],
             ],
-            'song_composer' => [
-                'type' => 'string',
-                'fields' => [
-                    'raw' => $rawField,
-                ],
-            ],
+// ignore composer name for simplicity.
+//            'song_composer' => [
+//                'type' => 'string',
+//                'fields' => [
+//                    'raw' => $rawField,
+//                ],
+//            ],
         ],
     ],
 ]);

@@ -1,6 +1,3 @@
-- Share volumes of 'db' and 'app', so MySQL "source" would read like from a "local" disk
+read about memory usage by ES
 
-
-Pre-production:
-- publish the "app" image, not build it
-- prepare the SE data with some data inside to not batch index it.
+https://www.elastic.co/guide/en/elasticsearch/guide/current/_limiting_memory_usage.html
