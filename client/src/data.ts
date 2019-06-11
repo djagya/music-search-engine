@@ -1,5 +1,5 @@
 import axios, { AxiosResponse } from 'axios';
-import { ErrorResponse, SearchResponse, SelectedFields } from './types';
+import { ErrorResponse, RelatedResponse, SearchResponse, SelectedFields } from './types';
 
 let useAws = false;
 
@@ -18,9 +18,7 @@ export function fetchSuggestions(
         aws: useAws,
       },
     })
-    .then((res: AxiosResponse<SearchResponse>) => {
-      return res.data;
-    })
+    .then((res: AxiosResponse<SearchResponse>) => res.data)
     .catch(err => {
       console.log(err);
       return { error: JSON.stringify(err) } as ErrorResponse;
@@ -30,7 +28,7 @@ export function fetchSuggestions(
 export function fetchRelatedSuggestions(
   emptyFields: string[],
   selectedFields: SelectedFields,
-): Promise<SearchResponse | ErrorResponse> {
+): Promise<RelatedResponse | ErrorResponse> {
   return axios
     .get('/related', {
       params: {
@@ -40,10 +38,7 @@ export function fetchRelatedSuggestions(
         aws: useAws,
       },
     })
-    .then((res: AxiosResponse<SearchResponse>) => {
-      console.log(res);
-      return res.data;
-    })
+    .then((res: AxiosResponse<RelatedResponse>) => res.data)
     .catch(err => {
       console.log(err);
       return { error: JSON.stringify(err) } as ErrorResponse;

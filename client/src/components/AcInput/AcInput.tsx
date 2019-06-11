@@ -26,9 +26,9 @@ export default function AcInput(props: AcInputProps) {
   // Related values use hits, not aggregations. Filter out empty values.
   const relatedWithValue = relatedResponse && {
     ...relatedResponse,
-    hits: relatedResponse.hits.map(s => ({...s, value: s.values![name]})).filter(_ => !!_.value)
+    suggestions: relatedResponse.suggestions.filter(_ => !!_.value)
   };
-  const hasRelatedItems = relatedWithValue && relatedWithValue.hits.length > 0;
+  const hasRelatedItems = relatedWithValue && relatedWithValue.suggestions.length > 0;
 
   // Display if current input is active and there's typing response or if there's a related response.
   const showSuggestions = Boolean(hasRelatedItems || (isActive && typingResponse));
@@ -69,7 +69,6 @@ export default function AcInput(props: AcInputProps) {
       <Suggestions
         data={relatedWithValue || typingResponse}
         selected={selected}
-        showAggregations={!relatedResponse}
         onSelect={onSelect}
         style={{display: showSuggestions ? 'block' : 'none'}}
       />

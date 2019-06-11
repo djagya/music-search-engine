@@ -5,7 +5,7 @@ $switchColor: #bcaaa4;
 $backColor: #e0e0e0;
 $borderRadius: 15px;
 
-.Panel {
+.container {
     display: inline-flex;
     flex-direction: column;
     //color: $inactiveColor;
@@ -21,7 +21,7 @@ $borderRadius: 15px;
     font-size: 0.7em;
 }
 
-.Panel.loading .info {
+.container.loading .info {
     color: #8d6e63;
 }
 
@@ -79,7 +79,7 @@ input:checked + .switcher:before {
     color: green;
 }
 
-.Panel.loading .switcher:before {
+.container.loading .switcher:before {
     animation-name: load;
     animation-duration: 1s;
     animation-iteration-count: infinite;

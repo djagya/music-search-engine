@@ -5,16 +5,15 @@ import React from 'react';
 interface SuggestionsProps {
   data: SearchResponse | null;
   selected: Suggestion | null;
-  showAggregations: boolean;
   onSelect: { (suggestion: Suggestion): void };
   style: React.CSSProperties | undefined;
 }
 
-export default function Suggestions({ data, selected, showAggregations, onSelect, style }: SuggestionsProps) {
+export default function Suggestions({ data, selected, onSelect, style }: SuggestionsProps) {
   if (!data) {
     return null;
   }
-  const { aggregations, hits, maxScore, total } = data;
+  const { total, maxScore, suggestions } = data;
 
   const listItems = (items: Suggestion[]) =>
     items.length ? (
@@ -27,15 +26,14 @@ export default function Suggestions({ data, selected, showAggregations, onSelect
 
   return (
     <div className={styles.Suggestions} style={style}>
-      <small>{showAggregations ? 'Showing unique aggregation' : 'Showing hits'}</small>
+      <small>Aggregated unique values.</small>
 
-      {hits.length > 0 && (
+      {suggestions.length > 0 && (
         <div>
-          <b>Total:</b> {totalText} <br />
-          <b>Max score:</b> {maxScore}
+          <b>Total:</b> {totalText}, <b>max score:</b> {maxScore}
         </div>
       )}
-      <ul className={styles.list}>{listItems(showAggregations ? aggregations : hits)}</ul>
+      <ul className={styles.list}>{listItems(suggestions)}</ul>
     </div>
   );
 }
@@ -52,7 +50,7 @@ function ListItem({ active, item, onSelect }: ListItemProps) {
       <button className={styles.itemButton} onClick={() => onSelect(item)}>
         {item.value}
         <small className={styles.itemMeta}>
-          [score: {item.score}; count: {item.count}]
+          [score: {item.score}; count: {item.count}; {item._index}]
         </small>
       </button>
     </li>

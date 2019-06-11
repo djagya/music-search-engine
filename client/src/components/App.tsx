@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import styles from './App.module.scss';
-import { SearchResponse, SelectedFields, Suggestion } from '../types';
+import { RelatedResponse, SearchResponse, SelectedFields, Suggestion } from '../types';
 import { fetchRelatedSuggestions, fetchSuggestions, setUseAws } from '../data';
 import ErrorBoundary from './ErrorBoundary';
 import AcInput from './AcInput/AcInput';
@@ -8,12 +8,11 @@ import InstanceStatus from './InstanceStatus';
 
 const MIN_PREFIX_LENGTH = 3;
 
-const fields: string[] = ['artist', 'song', 'release', 'composer'];
+const fields: string[] = ['artist_name', 'song_name', 'release_title'];
 const defaultList = {
-  artist: null,
-  song: null,
-  release: null,
-  composer: null
+  artist_name: null,
+  song_name: null,
+  release_title: null,
 };
 
 interface FieldsSearchResponse {
@@ -26,9 +25,8 @@ interface FieldsSearchResponse {
  * - related suggestions support, i.e. request empty fields suggestions related to the filled fields
  */
 function App() {
-  // todo: new idea. maybe the list of relatedResponse suggestions should be just one, based on the current state of selected fields?
   const [typingResponses, setTyping] = useState<FieldsSearchResponse>(defaultList);
-  const [relatedResponses, setRelated] = useState<FieldsSearchResponse>(defaultList);
+  const [relatedResponse, setRelated] = useState<RelatedResponse | null>(null);
 
   const [fieldsSelected, setSelected] = useState<SelectedFields>(defaultList);
   const [activeField, setActiveField] = useState<string | null>();
@@ -38,17 +36,18 @@ function App() {
    */
   function typingHandler(name: string) {
     return (value: string) => {
-      // todo: when there's some selected fields, send them in the request so we can filter on them like for relatedResponse suggestions
-      if (value && value.length < MIN_PREFIX_LENGTH) {
-        fetchSuggestions(name, value, fieldsSelected).then(res => {
-          if ('error' in res) {
-            throw new Error(res.error);
-          }
-          setTyping({ ...typingResponses, [name]: res });
-        });
-      } else {
+      if (!value || value.length < MIN_PREFIX_LENGTH) {
         setTyping({ ...typingResponses, [name]: null });
+
+        return;
       }
+
+      fetchSuggestions(name, value, fieldsSelected).then(res => {
+        if ('error' in res) {
+          throw new Error(res.error);
+        }
+        setTyping({ ...typingResponses, [name]: res });
+      });
     };
   }
 
@@ -69,9 +68,7 @@ function App() {
         if ('error' in res) {
           throw new Error(res.error);
         }
-        // todo: for now one list containing all fields and their suggestions is used, so temporary use 'name' = 'all'
-        // setRelated({ ...relatedResponses, [name]: res });
-        setRelated({ ...relatedResponses, all: res });
+        setRelated(res);
       });
     };
   }
@@ -82,7 +79,7 @@ function App() {
     const typingResponse = typingResponses[field];
     // const relatedResponse = relatedResponses[field];
     // If field is already selected, don't provide "related" suggestions, keep "typing" to allow to select another one.
-    const relatedResponse = fieldsSelected[field] ? null : relatedResponses['all'];
+    const related = fieldsSelected[field] || !relatedResponse ? null : relatedResponse.fields[field];
 
     return (
       <AcInput
@@ -90,7 +87,7 @@ function App() {
         isActive={isActive}
         selected={selected}
         typingResponse={typingResponse}
-        relatedResponse={relatedResponse}
+        relatedResponse={related}
         placeholder={field}
         onTyping={typingHandler(field)}
         onSelect={selectionHandler(field)}
@@ -106,7 +103,7 @@ function App() {
 
         <div className={styles.instance}>
           <span>AWS instance &nbsp;</span>
-          <InstanceStatus onChange={(v) => setUseAws(v)}/>
+          <InstanceStatus onChange={v => setUseAws(v)} />
         </div>
 
         <div className={styles.Form}>
@@ -119,7 +116,7 @@ function App() {
       <Preview>
         <h3 className={styles.header}>Data preview</h3>
 
-        <Metadata selected={fieldsSelected}/>
+        {relatedResponse && relatedResponse.data && <Metadata data={relatedResponse.data} />}
       </Preview>
     </div>
   );
@@ -127,19 +124,33 @@ function App() {
 
 export default App;
 
-function Panel({ children }: { children: JSX.Element[] }) {
+function Panel({ children }: { children: any }) {
   return <div className={styles.Panel}>{children}</div>;
 }
 
-function Preview({ children }: { children: JSX.Element[] }) {
+function Preview({ children }: { children: any }) {
   return <div className={styles.Preview}>{children}</div>;
 }
 
-function Metadata({ selected }: { selected: SelectedFields }) {
-  return <div>
-    {Object.keys(selected).filter(f => !!selected[f]).map(f => <p key={f}>
-      <b>{f}</b>
-      {JSON.stringify(selected[f]!.data)}
-    </p>)}
-  </div>;
+function Metadata({ data }: { data: any }) {
+  const first = data[0];
+  const attrs = first['_source'];
+
+  return (
+    <div>
+      <b>Index:</b> {first['_index']} <br />
+      <b>Id:</b> {first['_id']} <br />
+      <h4>Values</h4>
+      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
+        {Object.keys(attrs)
+          .filter(f => !!attrs[f])
+          .map(f => (
+            <div key={f}>
+              <b>{f}:</b>
+              {attrs[f]}
+            </div>
+          ))}
+      </div>
+    </div>
+  );
 }
