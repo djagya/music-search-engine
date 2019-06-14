@@ -48,10 +48,10 @@ services:
     ports:
       - 8472:80
     environment:
-      ENV: ${ENV}
-      SERVER_MODE: ${SERVER_MODE}
-      ES_HOST: ${ES_HOST}
-      MYSQL_HOST: ${MYSQL_HOST}
+      ENV: ${ENV:-development}
+      SERVER_MODE: ${SERVER_MODE:-0}
+      ES_HOST: ${ES_HOST:-es01}
+      MYSQL_HOST: ${MYSQL_HOST:-db}
       MYSQL_PASS: ${MYSQL_PASS:-root}
       AWS_INSTANCE: ${AWS_INSTANCE}
       AWS_KEY: ${AWS_KEY}
