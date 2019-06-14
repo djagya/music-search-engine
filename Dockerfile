@@ -9,6 +9,7 @@ COPY configs/nginx.conf /etc/nginx/sites-available/default
 
 VOLUME /app/client/node_modules
 VOLUME /app/server/vendor
+VOLUME /app/logs
 
 # Install PHP app packages
 RUN php /usr/bin/composer.phar install --no-dev --no-interaction -o -d server
