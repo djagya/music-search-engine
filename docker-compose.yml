@@ -47,8 +47,6 @@ services:
     build: .
     ports:
       - 8080:80
-    depends_on:
-      - db
     environment:
       ENV: ${ENV}
       SERVER_MODE: ${SERVER_MODE}
