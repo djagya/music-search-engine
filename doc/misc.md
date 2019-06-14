@@ -7,7 +7,7 @@ ssh -i ~/.ssh/bachelor-search.pem ec2-user@ec2-52-57-141-175.eu-central-1.comput
 
 WEB app:
 
-http://174.138.4.138:8472/
+http://musicsearch.danilz.me/
 
 
 

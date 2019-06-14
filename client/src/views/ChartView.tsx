@@ -117,22 +117,35 @@ function SongTable({ rows, charted }: { rows: any[]; charted: boolean }) {
   return (
     <table className={styles.table}>
       <thead>
-        <th>Cover art</th>
-        <Th field={FIELDS.artist} />
-        <Th field={FIELDS.release} />
-        <Th field={FIELDS.song} />
+      {charted && <th>Rank</th>}
+      <th>Cover art</th>
 
-        <th>Data</th>
+      <Th field={FIELDS.artist} />
+      <Th field={FIELDS.release} />
+      <Th field={FIELDS.song} />
+      <th>Label</th>
+      <th>Genre</th>
+      <th>Released</th>
+
+      <th>Data</th>
       </thead>
 
       <tbody>
-        <tr>
-          <td>cover art</td>
-          <td>artist</td>
-          <td>release</td>
-          <td>song</td>
-          <td>attr1: value, attr2: value</td>
+      {rows.map(row => (
+        <tr key={row._id}>
+          <td>{row.cover_art_url && <img src={row.cover_art_url} width="50" />}</td>
+          <td>{row.artist_name}</td>
+          <td>{row.release_title}</td>
+          <td>
+            {row.song}
+            {row.song_duration && <small>&nbsp;{row.song_duration}</small>}
+          </td>
+          <td>{row.label_name}</td>
+          <td>{row.release_genre}</td>
+          <td>{row.release_year_released}</td>
+          <td>{JSON.stringify({ isrc: row.song_isrc, upc: row.release_upc })}</td>
         </tr>
+      ))}
       </tbody>
     </table>
   );
@@ -146,15 +159,19 @@ function ArtistTable({ rows, charted }: { rows: any[]; charted: boolean }) {
   return (
     <table className={styles.table}>
       <thead>
-        <Th field={FIELDS.artist} />
-        <th>Labels</th>
+      {charted && <th>Rank</th>}
+
+      <Th field={FIELDS.artist} />
+      <th>Labels</th>
       </thead>
 
       <tbody>
-        <tr>
-          <td>artist</td>
-          <td>label1, label2</td>
+      {rows.map(row => (
+        <tr key={row._id}>
+          <td>{row.artist_name}</td>
+          <td>{JSON.stringify(row.label_name)}</td>
         </tr>
+      ))}
       </tbody>
     </table>
   );
@@ -168,22 +185,22 @@ function ReleaseTable({ rows, charted }: { rows: any[]; charted: boolean }) {
   return (
     <table className={styles.table}>
       <thead>
-        <th>Cover art</th>
-        <Th field={FIELDS.release} />
-        <Th field={FIELDS.artist} />
-        <th>Genres</th>
-        <th>Labels</th>
-        <th>Released</th>
+      <th>Cover art</th>
+      <Th field={FIELDS.release} />
+      <Th field={FIELDS.artist} />
+      <th>Genres</th>
+      <th>Labels</th>
+      <th>Released</th>
       </thead>
 
       <tbody>
-        <tr>
-          <td>release</td>
-          <td>artist1, artist2</td>
-          <td>genre1, genre2</td>
-          <td>label1, label2</td>
-          <td>released1, released2</td>
-        </tr>
+      <tr>
+        <td>release</td>
+        <td>artist1, artist2</td>
+        <td>genre1, genre2</td>
+        <td>label1, label2</td>
+        <td>released1, released2</td>
+      </tr>
       </tbody>
     </table>
   );

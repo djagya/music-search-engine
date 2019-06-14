@@ -52,8 +52,27 @@ class ChartSearch
     }
 
     // todo: here only prefix matching is supported
-    protected function searchSongs(array $query, int $page):array {
+    protected function searchSongs(array $query, int $page): array
+    {
         $from = $page * self::PAGE_SIZE;
+
+        // Generate query for fields with supported prefix search (main AC fields). Use root indexed field.
+        $fullTextQuery = [];
+        foreach (BaseSearch::AC_FIELDS as $fullTextField) {
+            if (!empty($query[$fullTextField])) {
+                $fullTextQuery[] = ['match' => [$fullTextField => $query[$fullTextField]]];
+                unset($query[$fullTextField]);
+            }
+        }
+
+        // For the remaining fields generate a filter query.
+        $filter = [];
+        foreach ($query as $field => $value) {
+            $filter[] = ['term' => [$field => $value]];
+        }
+
+        var_dump($fullTextQuery);
+        var_dump($filter);
 
         $result = EsClient::build()->search([
             'index' => implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
@@ -63,20 +82,22 @@ class ChartSearch
                 // The query body.
                 'query' => [
                     'bool' => [
-                        'filter' => $this->getSelectedFieldsFilter($query),
-                        'match_all' => [],
+                        'filter' => $filter,
+                        'must' => $fullTextQuery,
                     ],
                 ],
                 //'aggs' => [
                 //
                 //],
+                'sort' => ['song_name.sort'],
             ],
         ]);
 
         return $result;
     }
 
-    protected function searchArtists(array $query):array {
+    protected function searchArtists(array $query): array
+    {
         $result = EsClient::build()->search([
             'index' => implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
             'body' => [
@@ -111,7 +132,8 @@ class ChartSearch
         return $result;
     }
 
-    protected function searchReleases(array $query):array {
+    protected function searchReleases(array $query): array
+    {
         $result = EsClient::build()->search([
             'index' => implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
             'body' => [

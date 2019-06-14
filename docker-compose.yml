@@ -59,7 +59,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./:/${APP_MOUNT:-/opt/app}:cached
+      - ./:/${APP_MOUNT:-/opt/app}:cached # in development APP_MOUNT is /app that makes it live-sync with host
     networks:
       - mainnet
 
@@ -68,7 +68,6 @@ volumes:
   esdata01:
     driver: local
   data-volume:
-    driver: local
 
 networks:
   mainnet:
