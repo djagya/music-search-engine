@@ -7,14 +7,14 @@ COPY client /app/client
 COPY server /app/server
 COPY configs/nginx.conf /etc/nginx/sites-available/default
 
-VOLUME /app/client/node_modules
-VOLUME /app/server/vendor
-VOLUME /app/logs
-
 # Install PHP app packages
 RUN php /usr/bin/composer.phar install --no-dev --no-interaction -o -d server
 
 # Prepare client assets after we copied the /app, so npm won't load all package again.
 RUN cd client && npm install && npm rebuild node-sass && npm run-script build
+
+VOLUME /app/client/node_modules
+VOLUME /app/server/vendor
+VOLUME /app/logs
 
 CMD bash /app/server/docker-entrypoint.sh
