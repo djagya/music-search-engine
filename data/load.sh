@@ -5,8 +5,8 @@ DIR=`dirname "$0"`
 if [[ "$1" == "spins" ]]; then
     echo "Ingesting spins DB with the dump: $DIR/spins.sql.gz"; echo
 
-    mysql -uroot -proot -e "create database if not exists spins character set utf8mb4 collate utf8mb4_unicode_ci;"
-    yes y | gunzip -c ${DIR}/spins.sql.gz | mysql -uroot -p${MYSQL_PASS} spins
+    mysql -uroot -p${MYSQL_ROOT_PASSWORD} -e "create database if not exists spins character set utf8mb4 collate utf8mb4_unicode_ci;"
+    yes y | gunzip -c ${DIR}/spins.sql.gz | mysql -uroot -p${MYSQL_ROOT_PASSWORD} spins
 
     exit
 fi
