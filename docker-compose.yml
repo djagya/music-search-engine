@@ -49,7 +49,7 @@ services:
       MYSQL_HOST: db
       ES_HOST: es01
       ENV: ${ENV}
-      SERVER_MODE: ${SERVER_MODE}
+      SERVER_MODE: 0
     stdin_open: true
     tty: true
     volumes:
