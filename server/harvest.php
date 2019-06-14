@@ -8,7 +8,7 @@ require 'vendor/autoload.php';
 
 $index = $argv[1] ?? null;
 if (!$index) {
-    echo "Usage: docker-compose exec app php server/harvest.php {epf|spins}";
+    echo "Usage: docker-compose exec app php server/harvest.php {epf|spins}\n";
 
     return;
 }

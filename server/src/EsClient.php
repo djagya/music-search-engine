@@ -9,8 +9,12 @@ class EsClient
 {
     public static function build(): Client
     {
+        $host = getenv('ES_HOST');
+
+        echo "Elastic Search host: $host\n";
+
         return ClientBuilder::create()
-            ->setHosts([getenv('ES_HOST')])
+            ->setHosts([$host])
             ->build();
     }
 }
