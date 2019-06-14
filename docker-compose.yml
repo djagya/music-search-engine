@@ -32,7 +32,7 @@ services:
       - 3306:3306
     mem_limit: ${DB_MEM}
     environment:
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASS:-root}
     volumes:
       - data-volume:/var/lib/mysql:cached # persist the db
       - ./configs:/etc/mysql/conf.d
@@ -49,10 +49,11 @@ services:
     depends_on:
       - db
     environment:
-      MYSQL_HOST: db
-      ES_HOST: es01
       ENV: ${ENV}
       SERVER_MODE: ${SERVER_MODE}
+      ES_HOST: es01
+      MYSQL_HOST: db
+      MYSQL_PASS: ${MYSQL_PASS:-root}
     stdin_open: true
     tty: true
     volumes:

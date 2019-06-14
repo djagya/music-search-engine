@@ -15,7 +15,7 @@ class Db
         $host = getenv('MYSQL_HOST');
         $db = 'spins';
         $user = 'root';
-        $pass = 'root';
+        $pass = getenv('MYSQL_PASS');
         $charset = 'utf8mb4';
 
         $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -28,7 +28,7 @@ class Db
         try {
             return new PDO($dsn, $user, $pass, $options);
         } catch (\PDOException $e) {
-            throw new \PDOException($e->getMessage(), (int)$e->getCode());
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
         }
     }
 
@@ -50,7 +50,7 @@ class Db
         try {
             return new PDO($dsn, $user, $pass, $options);
         } catch (\PDOException $e) {
-            throw new \PDOException($e->getMessage(), (int)$e->getCode());
+            throw new \PDOException($e->getMessage(), (int) $e->getCode());
         }
     }
 }
