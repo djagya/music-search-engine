@@ -95,7 +95,7 @@ abstract class BaseHarvester
     protected function harvest(): void
     {
         $client = EsClient::build();
-        $pdo = $this->getDb();
+        $pdo = static::getDb();
 
         $limit = self::BATCH_SIZE;
         $fullOffset = $limit * $this->totalForks;
@@ -113,16 +113,8 @@ abstract class BaseHarvester
             $rows = $pdo->prepare($query);
             $rows->execute([$limit, $offset]);
 
-            // Prepare the data batch.
-            foreach ($rows->fetchAll() as $row) {
-                $params['body'][] = [
-                    'index' => [
-                        '_index' => static::INDEX_NAME,
-                        '_id' => $this->generateId() ? null : $row['id'],
-                    ],
-                ];
-                $params['body'][] = $this->mapRow($row);
-            }
+            // Convert to ES query body.
+            $params['body'] = $this->getEsBatchBody($rows->fetchAll());
             // Finish when no rows in the batch.
             if (!$params['body']) {
                 $this->log('harvest is finished');
@@ -145,13 +137,11 @@ abstract class BaseHarvester
         } while (!empty($rows));
     }
 
-    abstract protected function getDb(): \PDO;
+    abstract protected function getEsBatchBody(array $batch): array;
+
+    abstract static protected function getDb(): \PDO;
 
     abstract protected function getQuery(): string;
-
-    abstract protected function mapRow(array $row): array;
-
-    abstract protected function generateId(): bool;
 
     protected function log(string $message): void
     {

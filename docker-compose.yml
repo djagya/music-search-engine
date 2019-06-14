@@ -55,8 +55,8 @@ services:
       SERVER_MODE: ${SERVER_MODE}
     stdin_open: true
     tty: true
-    #volumes:
-    #  - ./:/app:cached # todo: for development mode the content of the image will be overwritten by syncing with the current dir
+    volumes:
+      - ./:/app:cached # todo: for development mode the content of the image will be overwritten by syncing with the current dir
     networks:
       - mainnet
 

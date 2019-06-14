@@ -12,7 +12,10 @@ mysqldump --opt  spinitron spins  | gzip > spins.sql.gz
 ```
 
 
-
+To copy to the AWS instance:
+```bash
+rsync -a data/spins.sql.gz  -e "ssh -i $HOME/.ssh/bachelor-search.pem" ec2-user@ec2-52-57-141-175.eu-central-1.compute.amazonaws.com:/home/ec2-user/bachelor-search/data/
+```
 
 
 

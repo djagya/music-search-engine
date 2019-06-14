@@ -1,7 +1,6 @@
 FROM php:7.3-fpm
 
 ENV MYSQL_HOST 127.0.0.1
-ENV DB_NAME music
 # Make port 80 available to the world outside this container
 EXPOSE 80
 

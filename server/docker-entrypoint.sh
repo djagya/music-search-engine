@@ -8,3 +8,6 @@ if [[ "$SERVER_MODE" -eq "1" ]]; then
 
     php-fpm
 fi
+
+echo "App is in harvester mode, use it:"
+echo "docker-compose app run ..."

@@ -42,7 +42,7 @@ class SpinsHarvester extends BaseHarvester
         echo "Total " . self::format(self::$totalCount) . " documents, starting from id " . self::$startFromId . "\n";
     }
 
-    protected function getDb(): \PDO
+    protected static function getDb(): \PDO
     {
         return Db::spins();
     }
@@ -50,6 +50,22 @@ class SpinsHarvester extends BaseHarvester
     protected function getQuery(): string
     {
         return 'select * from spins where id > ' . self::$startFromId;
+    }
+
+    protected function getEsBatchBody(array $batch): array
+    {
+        $body = [];
+        foreach ($batch as $row) {
+            $body[] = [
+                'index' => [
+                    '_index' => static::INDEX_NAME,
+                ],
+            ];
+
+            $body[] = $this->mapRow($row);
+        }
+
+        return $body;
     }
 
     protected function generateId(): bool
@@ -83,7 +99,6 @@ class SpinsHarvester extends BaseHarvester
             'release_medium',
             'song_composer',
         ]);
-
 
         return array_intersect_key($row, array_flip($fields));
     }

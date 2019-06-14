@@ -14,7 +14,8 @@ fi
 if [[ "$1" == "epf" ]]; then
     echo "Unpacking EPF database from: $DIR/epf-myisam-tables.tgz"; echo
     tar --directory /var/lib/mysql -zxvf ${DIR}/epf-myisam-tables.tgz
-    echo "Now restart the DB container"; echo
+    echo "Now restart the DB container:";
+    echo "docker-compose restart db"
 
     exit
 fi
