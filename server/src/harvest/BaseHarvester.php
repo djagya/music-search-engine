@@ -9,7 +9,7 @@ abstract class BaseHarvester
 {
     const INDEX_NAME = '';
 
-    const BATCH_SIZE = 2500;
+    const BATCH_SIZE = 7500;
     const DEV_LIMIT = 200000;
 
     protected $forkN;

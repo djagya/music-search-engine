@@ -70,8 +70,6 @@ volumes:
     driver: local
   data-volume:
     driver: local
-  app-volume:
-    driver: local
 
 networks:
   mainnet:
