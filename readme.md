@@ -80,7 +80,7 @@ To ingest the database and index it them the following steps are required (with 
     docker-compose exec app php server/harvest.php spins
     ```
 
-Once these steps are finished, the `db` container should have two databases: `music` and `epf` for "spins" and "EPF" data sources respectively.  
+Once these steps are finished, the `db` container should have two databases: `spins` and `epf` for "spins" and "EPF" data sources respectively.  
 There should be two indexes available in the `es01` container: `spins` (indexed spins data source) and `music` (indexed denormalized EPF data source).
 
 
@@ -97,7 +97,7 @@ TODO: describe memory variables, mounted volume,
 
 ## The App server
 
-The client server consists of single `app` docker container in **server** mode (started with `RUN_SERVER=1` env variable).  
+The client server consists of single `app` docker container in **server** mode (started with `SERVER_MODE=1` env variable).  
 In server mode the local PHP server is started on the container port `80` and provides access to the search API (see below) and to the client app.
 
 #### Production mode
@@ -130,10 +130,9 @@ It's useful for immediate asset files update when running the client side watche
 
 There are multiple env variables the `app` container accepts:
 
-- `MYSQL_HOST` - where the music and epf databases are hosted
+- `MYSQL_HOST` - where the spins and epf databases are hosted
 - `ES_HOST` - where the Elastic Search instance is hosted
-- `CHECK_DB` - should the `app` entry script check and create missing databases on start?
-- `RUN_SERVER` - should the `app` entry script start the PHP server?
+- `SERVER_MODE` - should the `app` entry script start the PHP server?
 
 #### App server API
 

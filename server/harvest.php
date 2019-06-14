@@ -9,8 +9,11 @@ require 'vendor/autoload.php';
 $index = $argv[1] ?? null;
 if (!$index) {
     echo "Usage: docker-compose exec app php server/harvest.php {epf|spins}";
+
     return;
 }
+
+echo sprintf("Running in %s mode\n", getenv('ENV') === 'production' ? 'production' : 'development');
 
 Indexes::init($index);
 

@@ -1,16 +1,16 @@
 <?php
 
 use Aws\Ec2\Ec2Client;
+use Search\search\ChartSearch;
 use Search\search\RelatedSearch;
 use Search\search\TypingSearch;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
-
 /**
  * When typingResponse, autocomplete, show suggestions.
  */
-$app->get('/typing', function (Request $request, Response $response) {
+$app->get('/api/typing', function (Request $request, Response $response) {
     $field = $request->getQueryParam('field');
     if (!$field) {
         throw new InvalidArgumentException('"field" url query param is required');
@@ -22,12 +22,12 @@ $app->get('/typing', function (Request $request, Response $response) {
     $selected = json_decode($request->getQueryParam('selected', ''), true) ?: [];
 
     $search = new TypingSearch(
-        (string)$field,
+        (string) $field,
         $selected,
-        (bool)$request->getQueryParam('meta', true),
+        (bool) $request->getQueryParam('meta', true),
         $request->getQueryParam('index')
     );
-    $result = $search->search((string)$query);
+    $result = $search->search((string) $query);
 
     return $response->withJson($result);
 });
@@ -35,7 +35,7 @@ $app->get('/typing', function (Request $request, Response $response) {
 /**
  * When a suggestions selected, search for relatedResponse documents for other fields.
  */
-$app->get('/related', function (Request $request, Response $response, array $args) {
+$app->get('/api/related', function (Request $request, Response $response, array $args) {
     $empty = explode(':', $request->getQueryParam('empty', ''));
     if (!$empty) {
         throw new InvalidArgumentException('"empty" url query param must contain at least one field');
@@ -48,7 +48,7 @@ $app->get('/related', function (Request $request, Response $response, array $arg
     $search = new RelatedSearch(
         $empty,
         $selected,
-        (bool)$request->getQueryParam('meta', true),
+        (bool) $request->getQueryParam('meta', true),
         $request->getQueryParam('index')
     );
     $result = $search->search();
@@ -57,19 +57,29 @@ $app->get('/related', function (Request $request, Response $response, array $arg
 });
 
 /**
+ * Chart application search API.
+ */
+$app->get('/api/chart', function (Request $request, Response $response) {
+    $query = json_decode($request->getQueryParam('query', ''), true);
+    $page = $request->getQueryParam('page', 0);
+    $type = $request->getQueryParam('type', ChartSearch::TYPE_SONG);
+    $chart = $request->getQueryParam('chart', false);
+
+    $search = new ChartSearch($type, $chart, (bool) $request->getQueryParam('meta', true));
+    $result = $search->search($query, ['page' => $page]);
+
+    return $response->withJson($result);
+});
+
+/**
+ * todo: extract the instance id to the env variable
  * GET Instance status.
  * https://docs.aws.amazon.com/en_us/AWSEC2/latest/APIReference/API_DescribeInstanceStatus.html
  */
-$app->get('/instance', function (Request $request, Response $response) {
-    $client = new Ec2Client([
-        'region' => 'eu-central-1',
-        'credentials' => ['key' => 'AKIARDAFFXQCAXG3XDMG', 'secret' => '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'],
-        'version' => 'latest',
-    ]);
-    $res = $client->describeInstanceStatus([
-        'InstanceId.1' => 'i-0944a300ec006cf83',
-    ]);
+$app->get('/api/instance', function (Request $request, Response $response) {
+    $client = getEc2Client();
 
+    $res = $client->describeInstanceStatus(['InstanceId.1' => getenv('AWS_INSTANCE')]);
     $body = [
         'running' => ($res->toArray()['InstanceStatuses'][0]['InstanceState']['Code'] ?? null) === 16,
         'response' => $res->toArray(),
@@ -82,24 +92,22 @@ $app->get('/instance', function (Request $request, Response $response) {
  * Start/stop the instances.
  * https://docs.aws.amazon.com/en_us/AWSEC2/latest/APIReference/API_StartInstances.html
  */
-$app->post('/instance', function (Request $request, Response $response) {
+$app->post('/api/instance', function (Request $request, Response $response) {
     $start = $request->getParsedBodyParam('start', false);
-    $client = new Ec2Client([
-        'region' => 'eu-central-1',
-        'credentials' => ['key' => 'AKIARDAFFXQCAXG3XDMG', 'secret' => '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'],
-        'version' => 'latest',
-    ]);
 
-    $body = [
-        'InstanceIds' => ['InstanceId.1' => 'i-0944a300ec006cf83'],
-    ];
+    $client = getEc2Client();
+    $body = ['InstanceIds' => ['InstanceId.1' => getenv('AWS_INSTANCE')],];
 
-    if ($start) {
-        $result = $client->startInstances($body);
-    } else {
-        $result = $client->stopInstances($body);
-    }
+    $result = $start ? $client->startInstances($body) : $client->stopInstances($body);
 
     return $response->withJson($result->toArray());
 });
 
+function getEc2Client()
+{
+    return new Ec2Client([
+        'region' => 'eu-central-1',
+        'credentials' => ['key' => getenv('AWS_KEY'), 'secret' => getenv('AWS_KEY')],
+        'version' => 'latest',
+    ]);
+}

@@ -1,3 +1,12 @@
+To connect to AWS instance:
+
+```bash
+ssh -i ~/.ssh/bachelor-search.pem ec2-user@ec2-52-57-141-175.eu-central-1.compute.amazonaws.com
+```
+
+
+
+
 To start two nodes: `docker-compose up`.
 
 Data are stored here: `/usr/share/elasticsearch/data`.

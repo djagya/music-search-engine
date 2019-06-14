@@ -10,7 +10,7 @@ export default function InstanceStatus({ onChange }: { onChange: { (v: boolean):
   useEffect(() => {
     setLoading(true);
     axios
-      .get('/instance')
+      .get('/api/instance')
       .then(res => {
         setStatus(res.data.running === true);
         setLoading(false);

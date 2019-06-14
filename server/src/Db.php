@@ -13,7 +13,7 @@ class Db
     public static function spins()
     {
         $host = getenv('MYSQL_HOST');
-        $db = 'music';
+        $db = 'spins';
         $user = 'root';
         $pass = 'root';
         $charset = 'utf8mb4';

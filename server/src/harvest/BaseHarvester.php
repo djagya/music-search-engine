@@ -32,6 +32,7 @@ abstract class BaseHarvester
                 echo "Children #$i: starting the harvester\n";
                 $harvester = new static($i, $forksCount);
                 $harvester->harvest();
+
                 return;
             }
         }
@@ -39,7 +40,6 @@ abstract class BaseHarvester
         for ($i = 0; $i < $forksCount; $i++) {
             pcntl_waitpid($forks[$i], $status, WUNTRACED);
         }
-
 
         static::after();
     }
@@ -55,7 +55,7 @@ abstract class BaseHarvester
             'body' => [
                 'refresh_interval' => -1,
                 'number_of_replicas' => 0,
-            ]
+            ],
         ]);
     }
 
@@ -70,8 +70,7 @@ abstract class BaseHarvester
             'index' => static::INDEX_NAME,
             'body' => [
                 'refresh_interval' => null,
-                // 'number_of_replicas' => 1, // todo: temporary disable replicas to make development faster
-            ]
+            ],
         ]);
 
         // Update replicas.
@@ -104,10 +103,10 @@ abstract class BaseHarvester
 
         $this->log('started, offset - ' . self::format($offset) . ', limit - ' . self::format($limit));
 
-        $query = $this->getQuery();
+        $query = $this->getQuery() . ' limit ? offset ?';
         $params = [
             'index' => static::INDEX_NAME,
-            'body' => []
+            'body' => [],
         ];
         do {
             // Fetch the next data batch.
@@ -119,8 +118,8 @@ abstract class BaseHarvester
                 $params['body'][] = [
                     'index' => [
                         '_index' => static::INDEX_NAME,
-                        '_id' => $this->generateId() ? null : $row['id']
-                    ]
+                        '_id' => $this->generateId() ? null : $row['id'],
+                    ],
                 ];
                 $params['body'][] = $this->mapRow($row);
             }
@@ -138,9 +137,9 @@ abstract class BaseHarvester
             $params = ['body' => []];
             $offset += $fullOffset;
 
-            // todo: for now index only 1m spins to not spend time every time i change the index definition
-            if ($offset > static::DEV_LIMIT) {
+            if (getenv('ENV') !== 'production' && $offset > static::DEV_LIMIT) {
                 echo "Dev limit $offset > " . static::DEV_LIMIT . "\n";
+
                 return;
             }
         } while (!empty($rows));
@@ -156,7 +155,7 @@ abstract class BaseHarvester
 
     protected function log(string $message): void
     {
-        echo "Harvester#{$this->forkN}: $message\n";
+        echo gmdate('Y-m-d H:i:s') . " Harvester#{$this->forkN}: $message\n";
     }
 
     protected static function format(int $v): string

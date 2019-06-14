@@ -1,10 +1,8 @@
 version: '2.4'
 services:
   es01:
-    image: docker.elastic.co/elasticsearch/elasticsearch:7.0.1
     container_name: es01
-    # Install icu plugin if not installed.
-    command: sh -c "bin/elasticsearch-plugin list | grep -q analysis-icu || bin/elasticsearch-plugin install analysis-icu; /docker-entrypoint.sh elasticsearch"
+    build: ./configs
     environment:
       - node.name=es01
       - cluster.initial_master_nodes=es01
@@ -50,8 +48,8 @@ services:
     environment:
       MYSQL_HOST: db
       ES_HOST: es01
-      RUN_SERVER: 1
-      CHECK_DB: 1
+      ENV: ${ENV}
+      SERVER_MODE: ${SERVER_MODE}
     stdin_open: true
     tty: true
     volumes:

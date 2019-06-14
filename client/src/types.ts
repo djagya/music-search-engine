@@ -29,3 +29,9 @@ export interface SelectedFields {
 export interface ErrorResponse {
   error: string;
 }
+
+export interface ChartResponse {
+  totalCount: number;
+  page: number;
+  rows: any[];
+}

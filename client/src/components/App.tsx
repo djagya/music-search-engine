@@ -1,156 +1,40 @@
 import React, { useState } from 'react';
 import styles from './App.module.scss';
-import { RelatedResponse, SearchResponse, SelectedFields, Suggestion } from '../types';
-import { fetchRelatedSuggestions, fetchSuggestions, setUseAws } from '../data';
-import ErrorBoundary from './ErrorBoundary';
-import AcInput from './AcInput/AcInput';
+import { setUseAws } from '../data';
 import InstanceStatus from './InstanceStatus';
+import SearchView from '../views/SearchView';
+import ChartView from '../views/ChartView';
 
-const MIN_PREFIX_LENGTH = 3;
+const DEFAULT_ROUTE = '/chart';
 
-const fields: string[] = ['artist_name', 'song_name', 'release_title'];
-const defaultList = {
-  artist_name: null,
-  song_name: null,
-  release_title: null,
-};
+export default function App() {
+  const [route, setRoute] = useState<string>(DEFAULT_ROUTE);
 
-interface FieldsSearchResponse {
-  [fields: string]: SearchResponse | null;
-}
-
-/**
- * The main data-entry app gives four input fields, each of them provides:
- * - autocomplete suggestion support
- * - related suggestions support, i.e. request empty fields suggestions related to the filled fields
- */
-function App() {
-  const [typingResponses, setTyping] = useState<FieldsSearchResponse>(defaultList);
-  const [relatedResponse, setRelated] = useState<RelatedResponse | null>(null);
-
-  const [fieldsSelected, setSelected] = useState<SelectedFields>(defaultList);
-  const [activeField, setActiveField] = useState<string | null>();
-
-  /**
-   * GET autocomplete suggestions for the field.
-   */
-  function typingHandler(name: string) {
-    return (value: string) => {
-      if (!value || value.length < MIN_PREFIX_LENGTH) {
-        setTyping({ ...typingResponses, [name]: null });
-
-        return;
-      }
-
-      fetchSuggestions(name, value, fieldsSelected).then(res => {
-        if ('error' in res) {
-          throw new Error(res.error);
-        }
-        setTyping({ ...typingResponses, [name]: res });
-      });
-    };
-  }
-
-  /**
-   * GET related suggestions for empty fields based on the selected AC suggestions in filled fields.
-   */
-  function selectionHandler(name: string) {
-    return (suggestion: Suggestion) => {
-      const selected = { ...fieldsSelected, [name]: suggestion };
-      // What fields to return.
-      const empty = fields.filter(f => !(f in selected) || !selected[f]);
-
-      // Remember selected.
-      setSelected(selected);
-      setActiveField(null);
-
-      return fetchRelatedSuggestions(empty, selected).then(res => {
-        if ('error' in res) {
-          throw new Error(res.error);
-        }
-        setRelated(res);
-      });
-    };
-  }
-
-  function renderAcInput(field: string) {
-    const isActive = activeField === field;
-    const selected = fieldsSelected[field];
-    const typingResponse = typingResponses[field];
-    // const relatedResponse = relatedResponses[field];
-    // If field is already selected, don't provide "related" suggestions, keep "typing" to allow to select another one.
-    const related = fieldsSelected[field] || !relatedResponse ? null : relatedResponse.fields[field];
-
-    return (
-      <AcInput
-        name={field}
-        isActive={isActive}
-        selected={selected}
-        typingResponse={typingResponse}
-        relatedResponse={related}
-        placeholder={field}
-        onTyping={typingHandler(field)}
-        onSelect={selectionHandler(field)}
-        onFocus={() => setActiveField(field)}
-      />
-    );
+  function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>) {
+    e.preventDefault();
+    setRoute(e.currentTarget.pathname);
   }
 
   return (
     <div className={styles.App}>
-      <Panel>
-        <h1 className={styles.header}>Search</h1>
+      <header className={styles.header}>
+        <ul className={styles.nav}>
+          <a href="/search" className={route === '/search' ? styles.navActive : undefined} onClick={handleNavClick}>
+            Search
+          </a>
+          <a href="/chart" className={route === '/chart' ? styles.navActive : undefined} onClick={handleNavClick}>
+            Chart
+          </a>
+        </ul>
 
         <div className={styles.instance}>
           <span>AWS instance &nbsp;</span>
           <InstanceStatus onChange={v => setUseAws(v)} />
         </div>
+      </header>
 
-        <div className={styles.Form}>
-          {fields.map((field: string) => (
-            <ErrorBoundary key={field}>{renderAcInput(field)}</ErrorBoundary>
-          ))}
-        </div>
-      </Panel>
-
-      <Preview>
-        <h3 className={styles.header}>Data preview</h3>
-
-        {relatedResponse && relatedResponse.data && <Metadata data={relatedResponse.data} />}
-      </Preview>
-    </div>
-  );
-}
-
-export default App;
-
-function Panel({ children }: { children: any }) {
-  return <div className={styles.Panel}>{children}</div>;
-}
-
-function Preview({ children }: { children: any }) {
-  return <div className={styles.Preview}>{children}</div>;
-}
-
-function Metadata({ data }: { data: any }) {
-  const first = data[0];
-  const attrs = first['_source'];
-
-  return (
-    <div>
-      <b>Index:</b> {first['_index']} <br />
-      <b>Id:</b> {first['_id']} <br />
-      <h4>Values</h4>
-      <div style={{ display: 'flex', flexWrap: 'wrap' }}>
-        {Object.keys(attrs)
-          .filter(f => !!attrs[f])
-          .map(f => (
-            <div key={f}>
-              <b>{f}:</b>
-              {attrs[f]}
-            </div>
-          ))}
-      </div>
+      {route === '/search' && <SearchView />}
+      {route === '/chart' && <ChartView />}
     </div>
   );
 }

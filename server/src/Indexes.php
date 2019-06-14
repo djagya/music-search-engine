@@ -45,7 +45,7 @@ class Indexes
     protected static function getSettings(): array
     {
         return [
-            // 'number_of_shards' => 3, todo: enable in production. check why it's important
+            'number_of_shards' => getenv('ENV') === 'production' ? 3 : 1,
             'analysis' => [
                 'analyzer' => [
                     // The fuzzy searchable field supporting a wide range of languages ignoring misspelling.
