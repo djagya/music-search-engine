@@ -94,7 +94,7 @@ SQL;
             }
 
             $cId = $row['collection_id'];
-            $row['release_genre'] = static::$genresMap[$collectionGenreMap[$cId]] ?? '';
+            $row['release_genre'] = static::$genresMap[$collectionGenreMap[$cId] ?? ''] ?? '';
             $row['release_upc'] = $collectionUpcMap[$cId] ?? '';
             $row['release_various_artists'] = $collectionVaMap[$cId] ?? '0';
 
