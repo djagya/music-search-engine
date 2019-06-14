@@ -28,7 +28,7 @@ export default function InstanceStatus({ onChange }: { onChange: { (v: boolean):
   function handleChange() {
     setLoading(true);
     axios
-      .post('/instance', { start: !isRunning })
+      .post('/api/instance', { start: !isRunning })
       .then(res => {
         setStatus(res.data.running === true);
         setLoading(false);
