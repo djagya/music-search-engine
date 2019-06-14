@@ -4,7 +4,6 @@ declare(strict_types=1);
 namespace Search\harvest;
 
 use Search\Db;
-use Search\EsClient;
 use Search\Indexes;
 
 /**
@@ -16,30 +15,12 @@ class SpinsHarvester extends BaseHarvester
 {
     const INDEX_NAME = Indexes::SPINS_IDX;
 
-    static private $totalCount = 0;
-    static private $startFromId = 0;
-
-    /**
-     * Additionally find out the max indexed ID and total documents count starting from that max ID.
-     */
     protected static function before(): void
     {
         parent::before();
 
-        $maxIdResponse = EsClient::build()->search([
-            'index' => self::INDEX_NAME,
-            'body' => [
-                'size' => 0,
-                'aggs' => [
-                    'max_id' => ['max' => ['field' => 'id']],
-                ],
-            ],
-        ]);
-        self::$startFromId = $maxIdResponse['aggregations']['max_id']['value'] ?? 0;
-        self::$totalCount =
-            Db::spins()->query('select count(id) from spins where id > ' . self::$startFromId)->fetchColumn();
-
-        echo "Total " . self::format(self::$totalCount) . " documents, starting from id " . self::$startFromId . "\n";
+        self::$minId = static::getDb()->query('select min(id) from spin')->fetchColumn();
+        self::$maxId = static::getDb()->query('select max(id) from spin')->fetchColumn();
     }
 
     protected static function getDb(): \PDO
@@ -49,7 +30,7 @@ class SpinsHarvester extends BaseHarvester
 
     protected function getQuery(): string
     {
-        return 'select * from spins where id > ' . self::$startFromId;
+        return 'select * from spins where id BETWEEN ? AND ?';
     }
 
     protected function getEsBatchBody(array $batch): array

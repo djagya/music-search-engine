@@ -12,6 +12,9 @@ abstract class BaseHarvester
     const BATCH_SIZE = 5000;
     const DEV_LIMIT = 200000;
 
+    protected static $minId;
+    protected static $maxId;
+
     protected $forkN;
     protected $totalForks;
 
@@ -97,44 +100,48 @@ abstract class BaseHarvester
         $client = EsClient::build();
         $pdo = static::getDb();
 
-        $limit = self::BATCH_SIZE;
-        $fullOffset = $limit * $this->totalForks;
-        $offset = 0 + $limit * $this->forkN;
+        $fromId = self::$minId + self::BATCH_SIZE * $this->forkN; // forkN 0 - from id 0
+        $toId = $fromId + self::BATCH_SIZE;
+        $step = self::BATCH_SIZE * $this->totalForks;
 
-        $this->log('started, offset - ' . self::format($offset) . ', limit - ' . self::format($limit));
+        $this->log(sprintf('started from ID %s to ID %s, max song id %s', self::format($fromId), self::format($toId), self::format(self::$maxId)));
 
-        $query = $this->getQuery() . ' limit ? offset ?';
+        $query = $this->getQuery();
         $params = [
             'index' => static::INDEX_NAME,
             'body' => [],
         ];
+        $indexedCount = 0;
         do {
             // Fetch the next data batch.
             $rows = $pdo->prepare($query);
-            $rows->execute([$limit, $offset]);
+            $rows->execute([$fromId, $toId]);
+
+            $indexedCount += $rows->rowCount();
+            $fromId += $step;
+            $toId += $step;
+
+            if (!$rows->rowCount()) {
+                continue;
+            }
 
             // Convert to ES query body.
             $params['body'] = $this->getEsBatchBody($rows->fetchAll());
-            // Finish when no rows in the batch.
-            if (!$params['body']) {
-                $this->log('harvest is finished');
-                break;
-            }
 
             // Send the BULK request to ES.
             $client->bulk($params);
-            $this->log("batch " . self::format($offset) . ' - ' . self::format($offset + $limit));
+            $this->log(sprintf('batch %s – %s out of %s', self::format($fromId), self::format($toId), self::format(self::$maxId)));
 
             // Prepare for a new batch.
             $params = ['body' => []];
-            $offset += $fullOffset;
 
-            if (getenv('ENV') !== 'production' && $offset > static::DEV_LIMIT) {
-                echo "Dev limit $offset > " . static::DEV_LIMIT . "\n";
+            if (getenv('ENV') !== 'production' && $indexedCount > static::DEV_LIMIT) {
+                echo "Dev limit $indexedCount > " . static::DEV_LIMIT . "\n";
 
                 return;
             }
-        } while (!empty($rows));
+        } while ($fromId <= self::$maxId);
+        $this->log('harvest is finished');
     }
 
     abstract protected function getEsBatchBody(array $batch): array;
