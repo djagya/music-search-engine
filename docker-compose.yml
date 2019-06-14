@@ -59,8 +59,7 @@ services:
     stdin_open: true
     tty: true
     volumes:
-#      - ./:/${APP_MOUNT:-/opt/app}:cached
-      - app-volume:/app
+      - ./:/${APP_MOUNT:-/opt/app}:cached
     networks:
       - mainnet
 
