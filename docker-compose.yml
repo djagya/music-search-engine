@@ -52,11 +52,11 @@ services:
       MYSQL_HOST: db
       ES_HOST: es01
       ENV: ${ENV}
-      SERVER_MODE: 0
+      SERVER_MODE: ${SERVER_MODE}
     stdin_open: true
     tty: true
-    volumes:
-      - ./:/app:cached # todo: for development mode the content of the image will be overwritten by syncing with the current dir
+    #volumes:
+    #  - ./:/app:cached # todo: for development mode the content of the image will be overwritten by syncing with the current dir
     networks:
       - mainnet
 
