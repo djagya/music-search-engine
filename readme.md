@@ -74,10 +74,10 @@ To ingest the database and index it them the following steps are required (with 
 3. Harvest and index the data
     ```bash
     # EPF data source
-    docker-compose exec app php server/harvest.php epf
+    docker-compose run app php server/harvest.php epf
     
     # Spins data source
-    docker-compose exec app php server/harvest.php spins
+    docker-compose run app php server/harvest.php spins
     ```
 
 Once these steps are finished, the `db` container should have two databases: `spins` and `epf` for "spins" and "EPF" data sources respectively.  

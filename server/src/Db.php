@@ -37,7 +37,7 @@ class Db
         $host = getenv('MYSQL_HOST');
         $db = 'epf';
         $user = 'root';
-        $pass = 'root';
+        $pass = getenv('MYSQL_PASS');
         $charset = 'utf8mb4';
 
         $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
