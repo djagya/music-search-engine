@@ -19,6 +19,15 @@ rsync -a data/spins.sql.gz  -e "ssh -i $HOME/.ssh/bachelor-search.pem" ec2-user@
 
 
 
+To delete columns from original spin table loaded as a dump:
+
+```sql
+alter table spin 
+    drop column playlist_id, drop column station_id, drop column artist_name, drop column artist_conductor, 
+    drop column artist_performers, drop column artist_ensemble, drop column artist_local, drop column artist_custom, drop column release_classical, 
+    drop column release_catalog_number, drop column release_custom, drop column song_work, drop column song_iswc, drop column spin_note,
+    drop column spin_requested, drop column spin_new, drop column spin_rating, drop column spin_custom, drop column label_custom, drop column spin_cued, drop column pushed;
+```
 
 That's the query to create CSV:
 

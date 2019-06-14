@@ -56,7 +56,10 @@ class EpfHarvester extends BaseHarvester
             // Fetch the next data batch.
             $rows = $pdo->prepare($query);
             $rows->execute([$fromId, $toId]);
+
             $indexedCount += $rows->rowCount();
+            $fromId += $step;
+            $toId += $step;
 
             if (!$rows->rowCount()) {
                 continue;
@@ -71,8 +74,6 @@ class EpfHarvester extends BaseHarvester
 
             // Prepare for a new batch.
             $params = ['body' => []];
-            $fromId += $step;
-            $toId += $step;
 
             if (getenv('ENV') !== 'production' && $indexedCount > static::DEV_LIMIT) {
                 echo "Dev limit $indexedCount > " . static::DEV_LIMIT . "\n";
