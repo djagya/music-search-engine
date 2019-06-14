@@ -46,7 +46,7 @@ services:
     restart: on-failure
     build: .
     ports:
-      - 8080:80
+      - 8472:80
     environment:
       ENV: ${ENV}
       SERVER_MODE: ${SERVER_MODE}
