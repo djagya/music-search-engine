@@ -77,7 +77,8 @@ SQL;
         $query = "select collection_id, upc from collection_match cm where cm.collection_id IN ($collectionIds)";
         $collectionUpcMap = array_column($db->query($query)->fetchAll(), 'upc', 'collection_id');
 
-        $query = "select collection_id, COUNT(artist_id) > 1 as va FROM artist_collection ac WHERE ac.collection_id IN ($collectionIds)";
+        $query = "select collection_id, COUNT(artist_id) > 1 as va FROM artist_collection ac"
+            ." WHERE collection_id IN ($collectionIds) group by collection_id";
         $collectionVaMap = array_column($db->query($query)->fetchAll(), 'va', 'collection_id');
 
         $body = [];
@@ -93,9 +94,9 @@ SQL;
             }
 
             $cId = $row['collection_id'];
-            $row['release_genre'] = $collectionGenreMap[$cId];
-            $row['release_upc'] = $collectionUpcMap[$cId];
-            $row['release_various_artists'] = $collectionVaMap[$cId];
+            $row['release_genre'] = static::$genresMap[$collectionGenreMap[$cId]] ?? '';
+            $row['release_upc'] = $collectionUpcMap[$cId] ?? '';
+            $row['release_various_artists'] = $collectionVaMap[$cId] ?? '0';
 
             // ES payload
             $body[] = ['index' => ['_index' => static::INDEX_NAME]];
