@@ -59,7 +59,8 @@ services:
     stdin_open: true
     tty: true
     volumes:
-      - ./:/${APP_MOUNT:-/opt/app}:cached
+#      - ./:/${APP_MOUNT:-/opt/app}:cached
+      - app-volume:/app
     networks:
       - mainnet
 
@@ -68,6 +69,8 @@ volumes:
   esdata01:
     driver: local
   data-volume:
+    driver: local
+  app-volume:
     driver: local
 
 networks:
