@@ -33,6 +33,7 @@ services:
     mem_limit: ${DB_MEM}
     environment:
       MYSQL_ROOT_PASSWORD: ${MYSQL_PASS:-root}
+    working_dir: /app
     volumes:
       - data-volume:/var/lib/mysql:cached # persist the db
       - ./configs:/etc/mysql/conf.d
