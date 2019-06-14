@@ -15,7 +15,7 @@ if (PHP_SAPI == 'cli-server') {
 
 $app = new Slim\App([
     'settings' => [
-        'displayErrorDetails' => true,
+        'displayErrorDetails' => getenv('ENV') !== 'production',
         'logger' => [
             'name' => 'slim-app',
             'level' => Monolog\Logger::INFO,

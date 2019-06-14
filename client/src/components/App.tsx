@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import styles from './App.module.scss';
-import { setUseAws } from '../data';
 import InstanceStatus from './InstanceStatus';
 import SearchView from '../views/SearchView';
 import ChartView from '../views/ChartView';
@@ -9,6 +8,7 @@ const DEFAULT_ROUTE = '/chart';
 
 export default function App() {
   const [route, setRoute] = useState<string>(DEFAULT_ROUTE);
+  const [awsRunning, setAwsRunning] = useState<boolean>(false);
 
   function handleNavClick(e: React.MouseEvent<HTMLAnchorElement>) {
     e.preventDefault();
@@ -29,7 +29,7 @@ export default function App() {
 
         <div className={styles.instance}>
           <span>AWS instance &nbsp;</span>
-          <InstanceStatus onChange={v => setUseAws(v)} />
+          <InstanceStatus onChange={v => setAwsRunning(v)} />
         </div>
       </header>
 

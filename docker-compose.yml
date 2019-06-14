@@ -50,9 +50,12 @@ services:
     environment:
       ENV: ${ENV}
       SERVER_MODE: ${SERVER_MODE}
-      ES_HOST: es01
-      MYSQL_HOST: db
+      ES_HOST: ${ES_HOST}
+      MYSQL_HOST: ${MYSQL_HOST}
       MYSQL_PASS: ${MYSQL_PASS:-root}
+      AWS_INSTANCE: ${AWS_INSTANCE}
+      AWS_KEY: ${AWS_KEY}
+      AWS_SECRET: ${AWS_SECRET}
     stdin_open: true
     tty: true
     volumes:

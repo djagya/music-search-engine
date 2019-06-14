@@ -1,8 +1,6 @@
 import axios, { AxiosResponse } from 'axios';
 import { ChartResponse, ErrorResponse, RelatedResponse, SearchResponse, SelectedFields } from './types';
 
-let useAws = false;
-
 export function fetchSuggestions(
   field: string,
   value: string,
@@ -14,8 +12,6 @@ export function fetchSuggestions(
         field,
         query: value.trim(),
         selected: JSON.stringify(getSelectedFieldsData(selectedFields)),
-        meta: 0,
-        aws: useAws,
       },
     })
     .then((res: AxiosResponse<SearchResponse>) => res.data)
@@ -34,8 +30,6 @@ export function fetchRelatedSuggestions(
       params: {
         empty: emptyFields.join(':'),
         selected: JSON.stringify(getSelectedFieldsData(selectedFields)),
-        meta: 0,
-        aws: useAws,
       },
     })
     .then((res: AxiosResponse<RelatedResponse>) => res.data)
@@ -51,8 +45,6 @@ export function fetchChartRows(params: any, page: number): Promise<ChartResponse
       params: {
         ...params,
         page,
-        meta: 0,
-        aws: useAws,
       },
     })
     .then((res: AxiosResponse<ChartResponse>) => res.data)
@@ -74,9 +66,4 @@ function getSelectedFieldsData(selectedFields: SelectedFields): RequestData {
     }
     return res;
   }, {});
-}
-
-// todo: for now this hacky "singleton"
-export function setUseAws(use: boolean = false) {
-  useAws = use;
 }

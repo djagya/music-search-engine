@@ -24,7 +24,7 @@ $app->get('/api/typing', function (Request $request, Response $response) {
     $search = new TypingSearch(
         (string) $field,
         $selected,
-        (bool) $request->getQueryParam('meta', true),
+        (bool) $request->getQueryParam('meta', false),
         $request->getQueryParam('index')
     );
     $result = $search->search((string) $query);
@@ -48,7 +48,7 @@ $app->get('/api/related', function (Request $request, Response $response, array 
     $search = new RelatedSearch(
         $empty,
         $selected,
-        (bool) $request->getQueryParam('meta', true),
+        (bool) $request->getQueryParam('meta', false),
         $request->getQueryParam('index')
     );
     $result = $search->search();
@@ -65,7 +65,7 @@ $app->get('/api/chart', function (Request $request, Response $response) {
     $type = $request->getQueryParam('type', ChartSearch::TYPE_SONG);
     $chart = $request->getQueryParam('chart', false);
 
-    $search = new ChartSearch($type, $chart, (bool) $request->getQueryParam('meta', true));
+    $search = new ChartSearch($type, $chart, (bool) $request->getQueryParam('meta', false));
     $result = $search->search($query, ['page' => $page]);
 
     return $response->withJson($result);
@@ -107,7 +107,7 @@ function getEc2Client()
 {
     return new Ec2Client([
         'region' => 'eu-central-1',
-        'credentials' => ['key' => getenv('AWS_KEY'), 'secret' => getenv('AWS_KEY')],
+        'credentials' => ['key' => getenv('AWS_KEY'), 'secret' => getenv('AWS_SECRET')],
         'version' => 'latest',
     ]);
 }
