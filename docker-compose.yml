@@ -3,6 +3,7 @@ services:
   es01:
     container_name: es01
     build: ./configs
+    restart: always
     environment:
       - node.name=es01
       - cluster.initial_master_nodes=es01
@@ -27,7 +28,7 @@ services:
   db:
     container_name: db
     image: mariadb:latest
-    restart: on-failure
+    restart: always
     ports:
       - 3306:3306
     mem_limit: ${DB_MEM}
