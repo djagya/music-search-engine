@@ -65,10 +65,10 @@ To ingest the database and index it them the following steps are required (with 
 2. Load the data to the database
     ```bash
     # EPF data source
-    docker-compose exec db bash /root/data/load.sh epf
+    docker-compose exec db bash data/load.sh epf
     
     # Spins data source
-    docker-compose exec db bash /root/data/load.sh spins
+    docker-compose exec db bash data/load.sh spins
     ```
 
 3. Harvest and index the data

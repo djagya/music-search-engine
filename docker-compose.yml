@@ -36,7 +36,7 @@ services:
     volumes:
       - data-volume:/var/lib/mysql:cached # persist the db
       - ./configs:/etc/mysql/conf.d
-      - ./data:/root/data # give access to dump files so we can load it when needed directly inside the container
+      - ./data:/app/data # give access to dump files so we can load it when needed directly inside the container
     networks:
       - mainnet
 
