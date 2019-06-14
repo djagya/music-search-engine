@@ -6,7 +6,7 @@ import ErrorBoundary from '../components/ErrorBoundary';
 import AcInput from '../components/AcInput/AcInput';
 import {Heading} from "../components/UI";
 
-const MIN_PREFIX_LENGTH = 3;
+const MIN_PREFIX_LENGTH = 2;
 
 const fields: string[] = ['artist_name', 'song_name', 'release_title'];
 const defaultList = {
