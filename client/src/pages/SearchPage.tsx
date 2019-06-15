@@ -36,14 +36,18 @@ export default function SearchPage() {
    */
   function typingHandler(name: string) {
     return (value: string) => {
+      const newSelected = {...fieldsSelected, [name]: null};
+      // Reset related suggestions and current selected field.
+      setRelated(null);
+      setSelected(newSelected);
+
       if (!value || value.length < MIN_PREFIX_LENGTH) {
         setTyping({ ...typingResponses, [name]: null });
-        setRelated(null);
 
         return;
       }
 
-      fetchSuggestions(name, value, fieldsSelected).then(res => {
+      fetchSuggestions(name, value, newSelected).then(res => {
         if ('error' in res) {
           throw new Error(res.error);
         }
