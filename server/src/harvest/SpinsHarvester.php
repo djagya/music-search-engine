@@ -77,6 +77,7 @@ class SpinsHarvester extends BaseHarvester
 
         // Additional spins data source fields not presented in EPF.
         $fields = array_merge($fields, [
+            'spin_timestamp',
             'release_medium',
             'song_composer',
         ]);
