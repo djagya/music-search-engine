@@ -47,10 +47,20 @@ class Indexes
         return [
             'number_of_shards' => getenv('ENV') === 'production' ? 3 : 1,
             'analysis' => [
+                'filter' => [
+                    'acFilter' => [
+                        'type' => 'edge_ngram',
+                        'min_gram' => 1,
+                        'max_gram' => 20,
+                    ],
+                ],
                 'analyzer' => [
                     // The fuzzy searchable field supporting a wide range of languages ignoring misspelling.
                     'acAnalyzer' => [
-                        // todo: support fuziness https://www.elastic.co/guide/en/elasticsearch/guide/current/fuzziness.html
+                        'tokenizer' => 'icu_tokenizer',
+                        'filter' => ['icu_folding', 'acFilter'],
+                    ],
+                    'acQueryAnalyzer' => [
                         'tokenizer' => 'icu_tokenizer',
                         'filter' => ['icu_folding'],
                     ],
@@ -98,6 +108,7 @@ class Indexes
             $props[$column] = [
                 'type' => 'text',
                 'analyzer' => 'acAnalyzer',
+                'search_analyzer' => 'acQueryAnalyzer',
                 'fields' => [
                     'raw' => ['type' => 'keyword'],
                     'norm' => ['type' => 'keyword', 'normalizer' => 'caseInsensitive'],

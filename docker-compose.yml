@@ -72,7 +72,10 @@ services:
   app:
     container_name: app
     restart: on-failure
-    build: .
+    build:
+      context: .
+      args:
+        - SERVER_MODE=${SERVER_MODE:-0}
     ports:
       - 8472:80
     environment:
