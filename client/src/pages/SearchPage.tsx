@@ -24,7 +24,7 @@ interface FieldsSearchResponse {
  * - autocomplete suggestion support
  * - related suggestions support, i.e. request empty fields suggestions related to the filled fields
  */
-export default function SearchView() {
+export default function SearchPage() {
   const [typingResponses, setTyping] = useState<FieldsSearchResponse>(defaultList);
   const [relatedResponse, setRelated] = useState<RelatedResponse | null>(null);
 

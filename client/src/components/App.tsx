@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import styles from './App.module.scss';
 import InstanceStatus from './InstanceStatus';
-import SearchView from '../views/SearchView';
-import ChartView from '../views/ChartView';
+import SearchView from '../pages/SearchPage';
+import ChartView from '../pages/ChartPage';
 
 const DEFAULT_ROUTE = '/chart';
 

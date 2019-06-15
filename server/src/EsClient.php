@@ -11,8 +11,6 @@ class EsClient
     {
         $host = getenv('ES_HOST');
 
-        echo "Elastic Search host: $host\n";
-
         return ClientBuilder::create()
             ->setHosts([$host])
             ->build();

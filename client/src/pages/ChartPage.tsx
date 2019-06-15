@@ -27,7 +27,7 @@ interface ChartResponse {
  * todo: "chart mode" should probably use data only from the 'spins' index? it doesn't make sense to chart epf data?
  *
  */
-export default function ChartView() {
+export default function ChartPage() {
   const [gridType, setGridType] = useState('song');
   const [chartMode, setChartMode] = useState<boolean>(false);
   const [query, setQuery] = useState({ artist: '', release: '', song: '' });

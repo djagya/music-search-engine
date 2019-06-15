@@ -48,7 +48,7 @@ export default function AcInput(props: AcInputProps) {
    * @param e
    */
   function handleChange(e: FormEvent) {
-    const value = ((e.target as HTMLInputElement).value || '').trim();
+    const value = (e.target as HTMLInputElement).value || '';
     setValue(value);
     onTyping(value);
   }

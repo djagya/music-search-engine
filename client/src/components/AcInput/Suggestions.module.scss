@@ -6,6 +6,8 @@ $horizontalSpace: 0.75em;
   position: absolute;
   width: 100%;
   background-color: #f5f5f5;
+  max-height: 25em;
+  overflow-x: auto;
 
   border-top: #003d00 3px solid;
   border-bottom: #003d00 3px solid;
