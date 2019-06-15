@@ -30,7 +30,7 @@ class SpinsHarvester extends BaseHarvester
 
     protected function getQuery(): string
     {
-        return 'select * from spins where id BETWEEN ? AND ?';
+        return 'select * from spin where id BETWEEN ? AND ?';
     }
 
     protected function getEsBatchBody(array $batch): array
