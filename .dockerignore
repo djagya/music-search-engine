@@ -1,2 +1,4 @@
 /data
 .git
+client/node_modules
+server/vendor

@@ -38,13 +38,19 @@ class TypingSearch extends BaseSearch
         $field = $this->field;
 
         // Match the root field (that is prepared to be search for autocomplete suggestions) by the query.
-        $match = ['match' => [$field => [
-            'query' => $query,
-            // todo: fuziness can be slow for our data. then we'll need trigrams?
-            'fuzziness' => 'auto', // support misspelling. AUTO:3:6. length < 3 - exact match, 3..5 - one edit allowed, >6 - two edits
-            'operator' => 'and',
-            'prefix_length' => 2, // todo: cover in bachelor difference in performance with prefix = 1 or 2 or 3. or no prefix
-        ]]];
+        $match = [
+            'match' => [
+                $field => [
+                    'query' => $query,
+                    'operator' => 'and', // AND is needed so when searching multiple words query - no results with only one of the words are returned (e.g. for "amen co" we don't want result with only "co").
+
+                    // support misspelling. AUTO:3:6. length < 3 - exact match, 3..5 - one edit allowed, >6 - two edits
+                    // todo: fuziness can be slow for our data. then we'll need trigrams?
+                    //'fuzziness' => 'auto',
+                    //'prefix_length' => 2, // todo: cover in bachelor difference in performance with prefix = 1 or 2 or 3. or no prefix
+                ],
+            ],
+        ];
         // Search only for related suggestions if some field are already selected.
         $selectedFilter = $this->getSelectedFieldsFilter();
 
