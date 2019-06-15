@@ -38,6 +38,7 @@ export default function SearchPage() {
     return (value: string) => {
       if (!value || value.length < MIN_PREFIX_LENGTH) {
         setTyping({ ...typingResponses, [name]: null });
+        setRelated(null);
 
         return;
       }
