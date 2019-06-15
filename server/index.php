@@ -18,11 +18,11 @@ $app = new Slim\App([
         //'displayErrorDetails' => getenv('ENV') !== 'production',
         'displayErrorDetails' => true,
         'logger' => [
-            'name' => 'slim-app',
-            'level' => Monolog\Logger::INFO,
+            'name' => 'api-server',
+            'level' => getenv('ENV') === 'production' ? Monolog\Logger::INFO : Monolog\Logger::DEBUG,
             'path' => __DIR__ . '/../logs/app.log',
         ],
-    ]
+    ],
 ]);
 
 /**

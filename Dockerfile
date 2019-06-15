@@ -13,15 +13,15 @@ COPY client/src /app/client/src
 COPY server/* /app/server/
 COPY server/src /app/server/src
 
-# Create volumes for package directories to not load them every time
-VOLUME /app/client/node_modules
-VOLUME /app/server/vendor
-VOLUME /app/logs
-
 # Install PHP app packages
 RUN php /usr/bin/composer.phar install --no-dev --no-interaction -o -d server
 
 # Prepare client assets after we copied the /app, so npm won't load all package again.
-RUN cd client && npm install && npm rebuild node-sass && npm run-script build
+RUN cd client && npm install  --production && npm run-script build
+
+# Create volumes for package directories to not load them every time
+VOLUME /app/client/node_modules
+VOLUME /app/server/vendor
+VOLUME /app/logs
 
 CMD bash /app/server/docker-entrypoint.sh
