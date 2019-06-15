@@ -16,6 +16,8 @@ fi
 if [[ "$1" == "spins" ]]; then
     echo "Unpacking Spins database from: $DIR/spins-myisam-tables.tgz"; echo
     tar --directory /var/lib/mysql -zxvf ${DIR}/spins-myisam-tables.tgz
+
+    echo; echo "---------------"
     echo "Now restart the DB container:";
     echo "docker-compose restart db"
 
@@ -25,6 +27,8 @@ fi
 if [[ "$1" == "epf" ]]; then
     echo "Unpacking EPF database from: $DIR/epf-myisam-tables.tgz"; echo
     tar --directory /var/lib/mysql -zxvf ${DIR}/epf-myisam-tables.tgz
+
+    echo; echo "---------------"
     echo "Now restart the DB container:";
     echo "docker-compose restart db"
 

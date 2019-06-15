@@ -5,8 +5,10 @@ services:
     build: ./configs
     restart: always
     environment:
+#      - discovery.type=single-node # for development, single node cluster
       - node.name=es01
-      - cluster.initial_master_nodes=es01
+      - discovery.seed_hosts=es02
+      - cluster.initial_master_nodes=es01,es02
       - cluster.name=docker-cluster
       - bootstrap.memory_lock=true
       - "ES_JAVA_OPTS=-Xms${ES_JAVA_MEM} -Xmx${ES_JAVA_MEM}"
@@ -21,6 +23,32 @@ services:
         hard: 65536
     volumes:
       - esdata01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+    networks:
+      - mainnet
+  es02:
+    container_name: es02
+    build: ./configs
+    restart: always
+    environment:
+      - node.name=es02
+      - discovery.seed_hosts=es01
+      - cluster.initial_master_nodes=es01,es02
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms${ES_JAVA_MEM} -Xmx${ES_JAVA_MEM}"
+    mem_limit: ${ES_MEM}
+    memswap_limit: 0
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - esdata02:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
     networks:
@@ -67,7 +95,7 @@ services:
 
 volumes:
   esdata01:
-    driver: local
+  esdata02:
   data-volume:
 
 networks:
