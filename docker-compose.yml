@@ -1,74 +1,5 @@
 version: '2.4'
 services:
-  es01:
-    container_name: es01
-    build: ./configs
-    restart: always
-    environment:
-#      - discovery.type=single-node # for development, single node cluster
-      - node.name=es01
-      - discovery.seed_hosts=es02
-      - cluster.initial_master_nodes=es01,es02
-      - cluster.name=docker-cluster
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms${ES_JAVA_MEM} -Xmx${ES_JAVA_MEM}"
-    mem_limit: ${ES_MEM}
-    memswap_limit: 0
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    volumes:
-      - esdata01:/usr/share/elasticsearch/data
-    ports:
-      - 9200:9200
-    networks:
-      - esnet
-      - mainnet
-  es02:
-    container_name: es02
-    build: ./configs
-    restart: always
-    environment:
-      - node.name=es02
-      - discovery.seed_hosts=es01
-      - cluster.initial_master_nodes=es01,es02
-      - cluster.name=docker-cluster
-      - bootstrap.memory_lock=true
-      - "ES_JAVA_OPTS=-Xms${ES_JAVA_MEM} -Xmx${ES_JAVA_MEM}"
-    mem_limit: ${ES_MEM}
-    memswap_limit: 0
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    volumes:
-      - esdata02:/usr/share/elasticsearch/data
-    networks:
-      - esnet
-  db:
-    container_name: db
-    image: mariadb:latest
-    restart: always
-    ports:
-      - 3306:3306
-    mem_limit: ${DB_MEM}
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_PASS:-root}
-    working_dir: /app
-    volumes:
-      - data-volume:/var/lib/mysql:cached # persist the db
-      - ./configs:/etc/mysql/conf.d
-      - ./data:/app/data # give access to dump files so we can load it when needed directly inside the container
-    networks:
-      - mainnet
-
   app:
     container_name: app
     restart: on-failure
@@ -93,7 +24,75 @@ services:
       - .:/${APP_MOUNT:-opt/app} # in development APP_MOUNT is /app that makes it live-sync with host
     networks:
       - mainnet
-
+  db:
+    container_name: db
+    image: mariadb:latest
+    restart: always
+    ports:
+      - 3306:3306
+    mem_limit: ${DB_MEM}
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_PASS:-root}
+    working_dir: /app
+    volumes:
+      - data-volume:/var/lib/mysql:cached # persist the db
+      - ./configs:/etc/mysql/conf.d
+      - ./data:/app/data # give access to dump files so we can load it when needed directly inside the container
+    networks:
+      - mainnet
+  es01:
+    build: ./configs
+    container_name: es01
+    restart: always
+    environment:
+#      - discovery.type=single-node # for development, single node cluster
+      - node.name=es01
+      - discovery.seed_hosts=es02
+      - cluster.initial_master_nodes=es01,es02
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms${ES_JAVA_MEM} -Xmx${ES_JAVA_MEM}"
+    mem_limit: ${ES_MEM}
+    memswap_limit: 0
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - esdata01:/usr/share/elasticsearch/data
+    ports:
+      - 9200:9200
+      - 9300:9300
+    networks:
+      - esnet
+      - mainnet
+  es02:
+    build: ./configs
+    container_name: es02
+    restart: always
+    environment:
+      - node.name=es02
+      - discovery.seed_hosts=es01
+      - cluster.initial_master_nodes=es01,es02
+      - cluster.name=docker-cluster
+      - bootstrap.memory_lock=true
+      - "ES_JAVA_OPTS=-Xms${ES_JAVA_MEM} -Xmx${ES_JAVA_MEM}"
+    mem_limit: ${ES_MEM}
+    memswap_limit: 0
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+      nofile:
+        soft: 65536
+        hard: 65536
+    volumes:
+      - esdata02:/usr/share/elasticsearch/data
+    networks:
+      - esnet
 
 volumes:
   esdata01:
