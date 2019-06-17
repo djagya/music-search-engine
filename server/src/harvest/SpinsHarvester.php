@@ -20,8 +20,8 @@ class SpinsHarvester extends BaseHarvester
     {
         parent::before();
 
-        self::$minId = static::getDb()->query('select min(id) from spin')->fetchColumn();
-        self::$maxId = static::getDb()->query('select max(id) from spin')->fetchColumn();
+        self::$minId = static::getDb()->query('select min(id) from spins_dump')->fetchColumn();
+        self::$maxId = static::getDb()->query('select max(id) from spins_dump')->fetchColumn();
     }
 
     protected static function getDb(): PDO
@@ -31,7 +31,7 @@ class SpinsHarvester extends BaseHarvester
 
     protected function getQuery(): string
     {
-        return 'select * from spin where id BETWEEN ? AND ?';
+        return 'select * from spins_dump where id BETWEEN ? AND ?';
     }
 
     protected function getEsBatchBody(array $batch): array
@@ -57,32 +57,6 @@ class SpinsHarvester extends BaseHarvester
 
     protected function mapRow(array $row): array
     {
-        // Common for spins and EPF fields.
-        $fields = [
-            'id',
-            // Artist
-            'artist_name',
-            // Release
-            'release_title',
-            'release_genre',
-            'release_various_artists',
-            'release_year_released',
-            'release_upc',
-            'label_name',
-            'cover_art_url',
-            // Song
-            'song_name',
-            'song_isrc',
-            'song_duration',
-        ];
-
-        // Additional spins data source fields not presented in EPF.
-        $fields = array_merge($fields, [
-            'spin_timestamp',
-            'release_medium',
-            'song_composer',
-        ]);
-
-        return array_intersect_key($row, array_flip($fields));
+        return $row;
     }
 }

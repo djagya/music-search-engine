@@ -47,17 +47,14 @@ class RelatedSearch extends BaseSearch
                 ],
             ];
 
-            $this->logger->debug("Related query [$emptyField] params", $params);
-
             // todo: concurrent queries
-            $t = microtime(true);
+            $this->logParams("Related [$emptyField] body", $params);
             $result = EsClient::build(true)->search($params);
-            $tookMs = (microtime(true) - $t) * 1000;
-            $this->logger->info("Related query [$emptyField] took {$tookMs}ms");
+            $this->logger->info("Related [$emptyField] took {$result['took']}ms");
 
             // Pass the current searched field so formatSuggestions know what value to take for a suggestion.
             $result['field'] = $emptyField;
-            $fieldResponses[$emptyField] = $this->formatResponse($result, $tookMs);
+            $fieldResponses[$emptyField] = $this->formatResponse($result);
         }
 
         // todo: figure out how to provide data we were able to get when few selected values matched

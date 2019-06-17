@@ -1,6 +1,7 @@
 import { SearchResponse, Suggestion } from '../../types';
 import styles from './Suggestions.module.scss';
 import React from 'react';
+import { formatTotal } from "../../utils";
 
 interface SuggestionsProps {
   data: SearchResponse | null;
@@ -22,15 +23,13 @@ export default function Suggestions({ data, selected, onSelect, style }: Suggest
       <li>No results.</li>
     );
 
-  const totalText = `${total.value}${total.relation === 'gte' ? '+' : ''}`;
-
   return (
     <div className={styles.Suggestions} style={style}>
       <small>Aggregated unique values.</small>
 
       {suggestions.length > 0 && (
         <div>
-          <b>Total:</b> {totalText}, <b>max score:</b> {maxScore}
+          <b>Total:</b> {formatTotal(total)}, <b>max score:</b> {maxScore}
         </div>
       )}
       <ul className={styles.list}>{listItems(suggestions)}</ul>

@@ -66,17 +66,22 @@ abstract class BaseSearch
     /**
      * Format the ES search result to be consumed by the web application.
      */
-    protected function formatResponse(array $result, int $tookMs = null): array
+    protected function formatResponse(array $result): array
     {
         if ($this->withMeta) {
             return $result;
         }
 
         return [
-            'tookMs' => $tookMs,
+            'tookMs' => $result['took'],
             'maxScore' => 0,
             'total' => $result['hits']['total'],
             'suggestions' => $this->formatSuggestions($result),
         ];
+    }
+
+    protected function logParams(string $message, $params): void
+    {
+        $this->logger->info($message, ['params' => json_encode($params)]);
     }
 }

@@ -31,7 +31,7 @@ class Indexes
             throw new InvalidArgumentException("Invalid index name '$index'");
         }
         $result = [];
-        foreach (($index ?: $both) as $idx) {
+        foreach (([$index] ?: $both) as $idx) {
             $result[$idx] = (new static($idx, $reset))->apply();
         }
 

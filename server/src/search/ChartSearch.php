@@ -4,25 +4,35 @@ namespace app\search;
 
 use app\EsClient;
 use app\Indexes;
+use app\Logger;
+use InvalidArgumentException;
 use stdClass;
 
 class ChartSearch
 {
-    const PAGE_SIZE = 50;
+    const TYPE_SONGS = 'songs';
+    const TYPE_ARTISTS = 'artists';
+    const TYPE_RELEASES = 'releases';
 
-    const TYPE_SONG = 'song';
-    const TYPE_ARTIST = 'artist';
-    const TYPE_RELEASE = 'release';
-
-    protected $type = self::TYPE_SONG;
+    protected $type = self::TYPE_SONGS;
     protected $chartMode = false;
     protected $meta = false;
+    protected $index;
+    protected $logger;
+    protected $es;
+    // todo: implement date range filter to allow to chart spins
+    protected $dateFrom;
+    protected $dateTo;
+    protected $page;
+    protected $pageSize;
 
     public function __construct(string $type, bool $chartMode, bool $meta = false)
     {
         $this->type = $type;
         $this->chartMode = $chartMode;
         $this->meta = $meta;
+        $this->logger = Logger::get('search');
+        $this->es = EsClient::build(true);
     }
 
     /**
@@ -30,15 +40,21 @@ class ChartSearch
      * @param array $params pagination and other params
      * @return array rows for the current page
      */
-    public function search(array $query, array $params = ['page' => 0]): array
+    public function search(array $query, array $params = ['page' => 0, 'pageSize' => 25]): array
     {
+        $this->index = !empty($params['index']) ? $params['index'] : null;
+        $this->page = $params['page'];
+        $this->pageSize = $params['pageSize'];
+
         $result = null;
-        if ($this->type === self::TYPE_SONG) {
-            $result = $this->searchSongs($query, $params['page']);
-        } elseif ($this->type === self::TYPE_ARTIST) {
+        if ($this->type === self::TYPE_SONGS) {
+            $result = $this->searchSongs($query);
+        } elseif ($this->type === self::TYPE_ARTISTS) {
             $result = $this->searchArtists($query);
-        } elseif ($this->type === self::TYPE_RELEASE) {
+        } elseif ($this->type === self::TYPE_RELEASES) {
             $result = $this->searchReleases($query);
+        } else {
+            throw new InvalidArgumentException("Invalid type {$this->type}");
         }
 
         if ($this->meta) {
@@ -47,18 +63,26 @@ class ChartSearch
 
         return [
             'took' => $result['took'],
-            'totalCount' => $result['hits']['total'],
+            'total' => $result['hits']['total'],
             'page' => $params['page'],
+            'pageSize' => $params['pageSize'],
             'rows' => array_map(function (array $hit) {
-                return $hit['_source'];
+                return array_merge(['_id' => $hit['_id']], $hit['_source']);
             }, $result['hits']['hits']),
         ];
     }
 
     // todo: here only prefix matching is supported
-    protected function searchSongs(array $query, int $page): array
+    protected function searchSongs(array $query): array
     {
-        $from = $page * self::PAGE_SIZE;
+        $from = $this->page * $this->pageSize;
+
+        // todo: chart mode using the db to be able to group by on the whole dataset.
+        //if ($this->chartMode) {
+        //    $res = Db::spins()
+        //        ->query('SELECT *, count(*) FROM spins.spins_dump group by artist_name, release_title, song_name;')
+        //        ->fetchAll();
+        //}
 
         // Generate query for fields with supported prefix search (main AC fields). Use root indexed field.
         $fullTextQuery = [];
@@ -72,39 +96,68 @@ class ChartSearch
         // For the remaining fields generate a filter query.
         $filter = [];
         foreach ($query as $field => $value) {
-            $filter[] = ['term' => [$field => $value]];
+            if ($value) {
+                $filter[] = ['term' => [$field => $value]];
+            }
         }
 
-        //var_dump($fullTextQuery);
-        //var_dump($filter);
-
-        $result = EsClient::build(true)->search([
-            'index' => implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
-            'size' => self::PAGE_SIZE,
+        $params = [
+            'index' => $this->getIndexName(),
+            'size' => $this->pageSize,
             'from' => $from,
             'body' => [
-                // The query body.
                 'query' => [
-                    // todo: use constant_score, we don't need relevance here
                     'bool' => [
                         'filter' => $filter,
                         'must' => $fullTextQuery ?: ['match_all' => new stdClass()],
                     ],
                 ],
+                'size' => 0,
                 //'aggs' => [
                 //
                 //],
+                // todo: sort
                 //'sort' => ['song_name.sort'],
             ],
-        ]);
+        ];
+        if ($this->chartMode) {
+            $params['body']['size'] = 0;
+            $params['body']['aggs'] = [
+                'my_buckets' => [
+                    'composite' => [
+                        'sources' => [
+                            ['song' => ['terms' => ['field' => 'song_name.norm']]],
+                            ['artist' => ['terms' => ['field' => 'artist_name.norm']]],
+                            ['release' => ['terms' => ['field' => 'release_title.norm']]],
+                        ],
+                    ],
+                    'aggs' => [
+                        'topHits' => [
+                            'top_hits' => [
+                                'size' => 1,
+                            ],
+                        ],
+                        'my_order' => [
+                            'bucket_sort' => [
+                                'sort' => ["_count" => ['order' => 'desc']],
+                            ],
+                        ],
+                    ],
+                ],
+            ];
+        }
+
+        $this->logParams("Chart [{$this->type}] params", $params);
+        $result = $this->es->search($params);
+        $this->logger->info("Chart [{$this->type}] took {$result['ms']}ms");
 
         return $result;
     }
 
     protected function searchArtists(array $query): array
     {
-        $result = EsClient::build(true)->search([
-            'index' => implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
+        $result = $this->es->search([
+            'index' => $this->getIndexName(),
             'body' => [
                 // The query body.
                 'query' => [
@@ -139,8 +192,8 @@ class ChartSearch
 
     protected function searchReleases(array $query): array
     {
-        $result = EsClient::build(true)->search([
-            'index' => implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
+        $result = $this->es->search([
+            'index' => $this->getIndexName(),
             'body' => [
                 // The query body.
                 'query' => [
@@ -181,5 +234,15 @@ class ChartSearch
         }
 
         return $selectedMatch;
+    }
+
+    protected function getIndexName(): string
+    {
+        return $this->index ?: implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]);
+    }
+
+    protected function logParams(string $message, $params): void
+    {
+        $this->logger->info($message, ['params' => json_encode($params)]);
     }
 }

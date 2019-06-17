@@ -39,12 +39,12 @@ export function fetchRelatedSuggestions(
     });
 }
 
-export function fetchChartRows(params: any, page: number): Promise<ChartResponse | ErrorResponse> {
+export function fetchChartRows(formData: any, params: any): Promise<ChartResponse | ErrorResponse> {
   return axios
     .get('/api/chart', {
       params: {
+        ...formData,
         ...params,
-        page,
       },
     })
     .then((res: AxiosResponse<ChartResponse>) => res.data)

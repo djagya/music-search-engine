@@ -1,0 +1,49 @@
+$spacing: 0.5em;
+
+.container {
+    display: flex;
+    flex-direction: column;
+    margin: 0 auto;
+    width: 90%;
+
+    background-color: #fafafa;
+    padding: $spacing;
+    border-radius: 3px;
+    min-height: 80vh;
+}
+
+.table {
+    width: 100%;
+}
+
+.OptionSelect {
+    b {
+        width: 6em;
+        display: inline-block;
+        text-align: right;
+    }
+
+    ul {
+        display: inline-flex;
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    li + li {
+        margin-left: 1em;
+    }
+}
+
+.gridSettings {
+    > * + * {
+        margin-top: $spacing;
+    }
+}
+
+
+.submit {
+    margin-top: $spacing * 4;
+    padding: $spacing / 2;
+}
+

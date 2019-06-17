@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import styles from './App.module.scss';
 import InstanceStatus from './InstanceStatus';
 import SearchView from '../pages/SearchPage';
-import ChartView from '../pages/ChartPage';
+import ChartView from '../pages/ChartPage/ChartPage';
 
 const DEFAULT_ROUTE = '/chart';
 // const DEFAULT_ROUTE = '/search';

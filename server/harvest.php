@@ -31,10 +31,10 @@ if ($index === 'settings') {
 }
 
 if ($index === Indexes::SPINS_IDX) {
-    Indexes::init($index, $reset);
+    Indexes::init($index, true);
     SpinsHarvester::run($count);
 } elseif ($index === Indexes::EPF_IDX) {
-    Indexes::init($index, $reset);
+    Indexes::init($index, true);
     EpfHarvester::run($count);
 } else {
     echo "Invalid index\n";

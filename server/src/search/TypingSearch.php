@@ -101,15 +101,11 @@ class TypingSearch extends BaseSearch
             ],
         ];
 
-        $this->logger->debug("Typing query '$query' params", $params);
-
-        // ES also returns 'took' property with the query ms.
-        $t = microtime(true);
+        $this->logParams("Typing [$query] body", $params);
         $result = EsClient::build(true)->search($params);
-        $tookMs = (microtime(true) - $t) * 1000;
-        $this->logger->info("Typing query '$query' took {$tookMs}ms");
+        $this->logger->info("Typing [$query] took {$result['took']}ms");
 
-        return $this->formatResponse($result, $tookMs);
+        return $this->formatResponse($result);
     }
 
     protected function formatSuggestions(array $data): array

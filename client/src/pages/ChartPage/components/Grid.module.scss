@@ -1,0 +1,25 @@
+$spacing: 0.5em;
+$accentColor: #ef6c00;
+
+.Grid {
+    margin-top: $spacing * 2;
+    border-top: solid 2px $accentColor;
+
+    th:not(:empty) {
+        background-color: #eeeeee;
+
+        div {
+            display: inline-flex;
+            flex-direction: column;
+        }
+    }
+}
+
+.Summary {
+    padding: $spacing 0;
+    font-size: small;
+
+    > * + * {
+        margin-left: $spacing * 2;
+    }
+}

@@ -1,5 +1,5 @@
 export interface SearchResponse {
-  total: { value: number; relation: string };
+  total: Total;
   maxScore: number;
   suggestions: Suggestion[];
 }
@@ -25,13 +25,19 @@ export interface SelectedFields {
   [name: string]: Suggestion | null;
 }
 
-
 export interface ErrorResponse {
   error: string;
 }
 
 export interface ChartResponse {
-  totalCount: number;
+  total: Total;
+  took: number;
   page: number;
+  pageSize: number;
   rows: any[];
+}
+
+export interface Total {
+  value: number;
+  relation: string;
 }

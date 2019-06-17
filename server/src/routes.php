@@ -60,13 +60,12 @@ $app->get('/api/related', function (Request $request, Response $response, array 
  * Chart application search API.
  */
 $app->get('/api/chart', function (Request $request, Response $response) {
-    $query = json_decode($request->getQueryParam('query', ''), true);
-    $page = $request->getQueryParam('page', 0);
-    $type = $request->getQueryParam('type', ChartSearch::TYPE_SONG);
+    $query = $request->getQueryParam('query', []);
+    $type = $request->getQueryParam('type', ChartSearch::TYPE_SONGS);
     $chart = $request->getQueryParam('chart', false);
 
     $search = new ChartSearch($type, $chart, (bool) $request->getQueryParam('meta', false));
-    $result = $search->search($query ?: [], ['page' => $page]);
+    $result = $search->search($query ?: [], $request->getQueryParams());
 
     return $response->withJson($result);
 });
