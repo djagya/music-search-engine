@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
+import React, { useRef, useState } from 'react';
 import styles from './Search.module.scss';
 import { RelatedResponse, SearchResponse, SelectedFields, Suggestion } from '../types';
 import { fetchRelatedSuggestions, fetchSuggestions } from '../data';
 import ErrorBoundary from '../components/ErrorBoundary';
 import AcInput from '../components/AcInput/AcInput';
-import {Heading} from "../components/UI";
+import { Heading } from "../components/UI";
 
 const MIN_PREFIX_LENGTH = 2;
 
@@ -30,16 +30,18 @@ export default function SearchPage() {
 
   const [fieldsSelected, setSelected] = useState<SelectedFields>(defaultList);
   const [activeField, setActiveField] = useState<string | null>();
+  const currentTyped = useRef<string>('');
 
   /**
    * GET autocomplete suggestions for the field.
    */
   function typingHandler(name: string) {
     return (value: string) => {
-      const newSelected = {...fieldsSelected, [name]: null};
+      const newSelected = { ...fieldsSelected, [name]: null };
       // Reset related suggestions and current selected field.
       setRelated(null);
       setSelected(newSelected);
+      currentTyped.current = value;
 
       if (!value || value.length < MIN_PREFIX_LENGTH) {
         setTyping({ ...typingResponses, [name]: null });
@@ -48,6 +50,10 @@ export default function SearchPage() {
       }
 
       fetchSuggestions(name, value, newSelected).then(res => {
+        if (value !== currentTyped.current) {
+          console.log(`Skipping old typing result for '${value}', current typed '${currentTyped.current}'`);
+          return;
+        }
         if ('error' in res) {
           throw new Error(res.error);
         }

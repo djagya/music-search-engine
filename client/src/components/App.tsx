@@ -4,6 +4,7 @@ import InstanceStatus from './InstanceStatus';
 import SearchView from '../pages/SearchPage';
 import ChartView from '../pages/ChartPage';
 
+// const DEFAULT_ROUTE = '/chart';
 const DEFAULT_ROUTE = '/search';
 
 export default function App() {
