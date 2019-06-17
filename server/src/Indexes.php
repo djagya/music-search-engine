@@ -1,61 +1,82 @@
 <?php
 
-namespace Search;
+namespace app;
 
-use Search\search\BaseSearch;
+use app\search\BaseSearch;
+use InvalidArgumentException;
 
 class Indexes
 {
     const EPF_IDX = 'epf';
     const SPINS_IDX = 'spins';
 
-    public static function init(string $index): void
+    protected $index;
+    protected $reset = false;
+
+    public function __construct(?string $index, bool $reset = false)
     {
-        if (!in_array($index, [self::EPF_IDX, self::SPINS_IDX])) {
-            throw new \InvalidArgumentException("Invalid index name '$index'");
-        }
-
-        echo "Resetting $index index\n";
-        echo "Settings:\n";
-        echo json_encode(static::getSettings(), JSON_PRETTY_PRINT) . "\n";
-        echo "Mappings:\n";
-        echo json_encode(static::getMappings(), JSON_PRETTY_PRINT) . "\n";
-
-        static::resetIndex($index);
+        $this->index = $index;
+        $this->reset = $reset;
     }
 
-    protected static function resetIndex(string $index): void
+    /**
+     * @param string|null $index when null apply to all indexes
+     * @param bool $reset
+     * @return array
+     */
+    public static function init(?string $index, bool $reset = false): array
     {
-        $client = EsClient::build();
-        if ($client->indices()->exists(['index' => $index])) {
-            $client->indices()->delete(['index' => $index]);
+        $both = [self::EPF_IDX, self::SPINS_IDX];
+        if ($index && !in_array($index, $both)) {
+            throw new InvalidArgumentException("Invalid index name '$index'");
         }
-        $result = $client->indices()->create([
-            'index' => $index,
-            'body' => [
-                'settings' => static::getSettings(),
-                'mappings' => static::getMappings(),
-            ],
-        ]);
+        $result = [];
+        foreach (($index ?: $both) as $idx) {
+            $result[$idx] = (new static($idx, $reset))->apply();
+        }
 
-        var_dump($result);
+        return $result;
+    }
+
+    public function apply(): array
+    {
+        // Apply reset, apply settings and mappings
+        $endpoint = EsClient::build()->indices();
+        $index = ['index' => $this->index];
+        $exists = $endpoint->exists($index);
+
+        if ($this->reset) {
+            if ($exists) {
+                Logger::get()->info("'$this->index' index delete");
+                $endpoint->delete($index);
+            }
+            Logger::get()->info("'$this->index' index create");
+
+            return $endpoint->create($index + [
+                    'body' => [
+                        'settings' => [
+                                'number_of_shards' => getenv('ENV') === 'production' ? 3 : 1,
+                            ] + static::getSettings(),
+                        'mappings' => static::getMappings(),
+                    ],
+                ]);
+        }
+
+        // Update settings. Requires close/open.
+        Logger::get()->info("'$this->index' index settings update");
+        $endpoint->close($index);
+        $result = $endpoint->putSettings($index + ['body' => ['settings' => self::getSettings()]]);
+        $endpoint->open($index);
+
+        return $result;
     }
 
     // todo: add analyzer that will be applied to the queries we send to ES. should be the same as the normalizer used during the indexing
     protected static function getSettings(): array
     {
         return [
-            'number_of_shards' => getenv('ENV') === 'production' ? 3 : 1,
             'analysis' => [
-                'filter' => [
-                    'acFilter' => [
-                        'type' => 'edge_ngram',
-                        'min_gram' => 1,
-                        'max_gram' => 20,
-                    ],
-                ],
                 'analyzer' => [
-                    // The fuzzy searchable field supporting a wide range of languages ignoring misspelling.
                     'acAnalyzer' => [
                         'tokenizer' => 'icu_tokenizer',
                         'filter' => ['icu_folding', 'acFilter'],
@@ -71,11 +92,25 @@ class Indexes
                         'filter' => ['icu_collation'],
                     ],
                 ],
+                'tokenizer' => [
+                    'acTokenizer' => [
+                        'type' => 'edge_ngram',
+                        'min_gram' => 2,
+                        'max_gram' => 20,
+                    ],
+                ],
                 'normalizer' => [
                     // To group found hits.
                     'caseInsensitive' => [
                         'type' => 'custom',
                         'filter' => ['lowercase'],
+                    ],
+                ],
+                'filter' => [
+                    'acFilter' => [
+                        'type' => 'edge_ngram',
+                        'min_gram' => 2,
+                        'max_gram' => 20,
                     ],
                 ],
             ],

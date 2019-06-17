@@ -1,6 +1,7 @@
 <?php
 declare(strict_types=1);
 
+use app\ErrorHandler;
 use Slim\Http\Request;
 use Slim\Http\Response;
 
@@ -13,16 +14,18 @@ if (PHP_SAPI == 'cli-server') {
     $_SERVER['SCRIPT_NAME'] = '/server.php';
 }
 
+ErrorHandler::register();
 $app = new Slim\App([
     'settings' => [
         //'displayErrorDetails' => getenv('ENV') !== 'production',
         'displayErrorDetails' => true,
-        'logger' => [
-            'name' => 'api-server',
-            'level' => getenv('ENV') === 'production' ? Monolog\Logger::INFO : Monolog\Logger::DEBUG,
-            'path' => __DIR__ . '/../logs/app.log',
-        ],
     ],
+    'errorHandler' => function ($container) {
+        return ErrorHandler::errorHandler($container);
+    },
+    'phpErrorHandler' => function ($container) {
+        return ErrorHandler::phpErrorHandler($container);
+    },
 ]);
 
 /**

@@ -1,9 +1,9 @@
 <?php
 
+use app\search\ChartSearch;
+use app\search\RelatedSearch;
+use app\search\TypingSearch;
 use Aws\Ec2\Ec2Client;
-use Search\search\ChartSearch;
-use Search\search\RelatedSearch;
-use Search\search\TypingSearch;
 use Slim\Http\Request;
 use Slim\Http\Response;
 

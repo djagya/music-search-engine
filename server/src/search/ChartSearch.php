@@ -1,9 +1,9 @@
 <?php
 
-namespace Search\search;
+namespace app\search;
 
-use Search\EsClient;
-use Search\Indexes;
+use app\EsClient;
+use app\Indexes;
 
 class ChartSearch
 {
@@ -74,13 +74,14 @@ class ChartSearch
         var_dump($fullTextQuery);
         var_dump($filter);
 
-        $result = EsClient::build()->search([
+        $result = EsClient::build(true)->search([
             'index' => implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
             'size' => self::PAGE_SIZE,
             'from' => $from,
             'body' => [
                 // The query body.
                 'query' => [
+                    // todo: use constant_score, we don't need relevance here
                     'bool' => [
                         'filter' => $filter,
                         'must' => $fullTextQuery,
@@ -98,7 +99,7 @@ class ChartSearch
 
     protected function searchArtists(array $query): array
     {
-        $result = EsClient::build()->search([
+        $result = EsClient::build(true)->search([
             'index' => implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
             'body' => [
                 // The query body.
@@ -134,7 +135,7 @@ class ChartSearch
 
     protected function searchReleases(array $query): array
     {
-        $result = EsClient::build()->search([
+        $result = EsClient::build(true)->search([
             'index' => implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
             'body' => [
                 // The query body.

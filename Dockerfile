@@ -10,6 +10,10 @@ COPY configs/nginx.conf /etc/nginx/sites-available/default
 COPY client /app/client
 COPY server /app/server
 
+# Logs directory, make writable for the php server
+RUN mkdir logs
+RUN chown www-data:www-data logs
+
 # Install PHP paclages
 RUN php /usr/bin/composer.phar install --no-dev --no-interaction -o -d server
 # If building for the server mode, install web app packages

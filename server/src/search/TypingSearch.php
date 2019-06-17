@@ -1,9 +1,9 @@
 <?php
 
-namespace Search\search;
+namespace app\search;
 
-use Search\EsClient;
-use Search\Indexes;
+use app\EsClient;
+use InvalidArgumentException;
 
 class TypingSearch extends BaseSearch
 {
@@ -13,7 +13,7 @@ class TypingSearch extends BaseSearch
     public function __construct(string $field, array $selected = [], bool $withMeta = true, string $index = null)
     {
         if (!in_array($field, self::AC_FIELDS)) {
-            throw new \InvalidArgumentException("Invalid field {$field}");
+            throw new InvalidArgumentException("Invalid field {$field}");
         }
         $this->field = $field;
 
@@ -38,16 +38,21 @@ class TypingSearch extends BaseSearch
         $field = $this->field;
 
         // Match the root field (that is prepared to be search for autocomplete suggestions) by the query.
+        // todo: when searching "dav", first is "david davenport" because it contains two "dav".
         $match = [
             'match' => [
                 $field => [
                     'query' => $query,
-                    'operator' => 'and', // AND is needed so when searching multiple words query - no results with only one of the words are returned (e.g. for "amen co" we don't want result with only "co").
+                    'operator' => 'and',
+                    // AND is needed so when searching multiple words query - no results with only one of the words are returned (e.g. for "amen co" we don't want result with only "co").
+                    'analyzer' => 'acQueryAnalyzer',
+                    // use the analyzer without n-grams, so we search using only whole terms of the query
 
                     // support misspelling. AUTO:3:6. length < 3 - exact match, 3..5 - one edit allowed, >6 - two edits
                     // todo: fuziness can be slow for our data. then we'll need trigrams?
-                    //'fuzziness' => 'auto',
-                    //'prefix_length' => 2, // todo: cover in bachelor difference in performance with prefix = 1 or 2 or 3. or no prefix
+                    'fuzziness' => 'auto',
+                    'prefix_length' => 2,
+                    // todo: cover in bachelor difference in performance with prefix = 1 or 2 or 3. or no prefix
                 ],
             ],
         ];
@@ -55,45 +60,56 @@ class TypingSearch extends BaseSearch
         $selectedFilter = $this->getSelectedFieldsFilter();
 
         // Match on the typingResponse field and filter by selected fields if they are specified.
-        $query = $selectedFilter ? [
+        $queryBody = $selectedFilter ? [
             'bool' => [
                 'filter' => $selectedFilter,
                 'must' => [$match],
+                // Boost score for exact matches.
+                'should' => [
+                    ['match' => [$field => $query]],
+                ],
             ],
         ] : $match;
 
-        $body = [
-            'query' => $query,
-            'aggs' => [
-                'groupByName' => [
-                    'terms' => [
-                        'field' => "$field.norm",
-                        'order' => ['maxScore' => 'desc'], // best match first
-                        // 'size' => 100, // amount of unique suggestions to return
-                    ],
-                    'aggs' => [
-                        // Aggregate the bucket max score for sorting.
-                        'maxScore' => ['max' => ['script' => ['source' => '_score']]],
-                        // Return the top document to get a display value from its '.raw' field.
-                        'topHits' => [
-                            'top_hits' => [
-                                'size' => 1,
+        $params = [
+            'index' => $this->getIndexName(),
+            'body' => [
+                'query' => $queryBody,
+                // todo: sort values with one score by name length
+                'aggs' => [
+                    'groupByName' => [
+                        'terms' => [
+                            'field' => "$field.norm",
+                            'order' => ['maxScore' => 'desc'], // best match first
+                            // 'size' => 100, // amount of unique suggestions to return
+                        ],
+                        'aggs' => [
+                            // Aggregate the bucket max score for sorting.
+                            'maxScore' => ['max' => ['script' => ['source' => '_score']]],
+                            // Return the top document to get a display value from its '.raw' field.
+                            'topHits' => [
+                                'top_hits' => [
+                                    'size' => 1,
+                                ],
                             ],
                         ],
                     ],
                 ],
+                'size' => 0, // don't return search hits, because we work with aggregated buckets only
+                // todo: also maybe implement search cancellation when a new request was received
+                'timeout' => '10s',
             ],
-            'size' => 0, // don't return search hits, because we work with aggregated buckets only
-            // todo: also maybe implement search cancellation when a new request was received
-            'timeout' => '10s',
         ];
 
-        $result = EsClient::build()->search([
-            'index' => $this->index ?: implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
-            'body' => $body,
-        ]);
+        $this->logger->debug("Typing query '$query' params", $params);
 
-        return $this->formatResponse($result);
+        // ES also returns 'took' property with the query ms.
+        $t = microtime(true);
+        $result = EsClient::build(true)->search($params);
+        $tookMs = (microtime(true) - $t) * 1000;
+        $this->logger->info("Typing query '$query' took {$tookMs}ms");
+
+        return $this->formatResponse($result, $tookMs);
     }
 
     protected function formatSuggestions(array $data): array

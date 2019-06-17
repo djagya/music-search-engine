@@ -9,19 +9,11 @@ services:
         - SERVER_MODE=${SERVER_MODE:-0}
     ports:
       - 8472:80
-    environment:
-      ENV: ${ENV:-development}
-      SERVER_MODE: ${SERVER_MODE:-0}
-      ES_HOST: ${ES_HOST:-es01}
-      MYSQL_HOST: ${MYSQL_HOST:-db}
-      MYSQL_PASS: ${MYSQL_PASS:-root}
-      AWS_INSTANCE: ${AWS_INSTANCE}
-      AWS_KEY: ${AWS_KEY}
-      AWS_SECRET: ${AWS_SECRET}
+    env_file: .env
     stdin_open: true
     tty: true
     volumes:
-      - .:/${APP_MOUNT:-opt/app} # in development APP_MOUNT is /app that makes it live-sync with host
+      - .:/${APP_MOUNT:-opt/app}:cached # in development APP_MOUNT is /app that makes it live-sync with host
     networks:
       - mainnet
   db:
@@ -45,7 +37,6 @@ services:
     container_name: es01
     restart: always
     environment:
-#      - discovery.type=single-node # for development, single node cluster
       - node.name=es01
       - discovery.seed_hosts=es02
       - cluster.initial_master_nodes=es01,es02
@@ -65,7 +56,6 @@ services:
       - esdata01:/usr/share/elasticsearch/data
     ports:
       - 9200:9200
-      - 9300:9300
     networks:
       - esnet
       - mainnet
@@ -93,6 +83,7 @@ services:
       - esdata02:/usr/share/elasticsearch/data
     networks:
       - esnet
+      - mainnet
 
 volumes:
   esdata01:

@@ -1,11 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Search\harvest;
+namespace app\harvest;
 
-use Search\Db;
-use Search\EsClient;
-use Search\Indexes;
+use app\Db;
+use app\Indexes;
+use PDO;
 
 class EpfHarvester extends BaseHarvester
 {
@@ -27,7 +27,7 @@ class EpfHarvester extends BaseHarvester
         echo sprintf("Loaded genres: %d \n", count(static::$genresMap));
     }
 
-    protected static function getDb(): \PDO
+    protected static function getDb(): PDO
     {
         return Db::epf();
     }

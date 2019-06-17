@@ -1,9 +1,10 @@
 <?php
 declare(strict_types=1);
 
-namespace Search\harvest;
+namespace app\harvest;
 
-use Search\EsClient;
+use app\EsClient;
+use PDO;
 
 abstract class BaseHarvester
 {
@@ -146,7 +147,7 @@ abstract class BaseHarvester
 
     abstract protected function getEsBatchBody(array $batch): array;
 
-    abstract static protected function getDb(): \PDO;
+    abstract static protected function getDb(): PDO;
 
     abstract protected function getQuery(): string;
 

@@ -1,8 +1,9 @@
 <?php
 
-namespace Search;
+namespace app;
 
 use PDO;
+use PDOException;
 
 /**
  * PDO guide: https://phpdelusions.net/pdo
@@ -27,8 +28,8 @@ class Db
         ];
         try {
             return new PDO($dsn, $user, $pass, $options);
-        } catch (\PDOException $e) {
-            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        } catch (PDOException $e) {
+            throw new PDOException($e->getMessage(), (int) $e->getCode());
         }
     }
 
@@ -49,8 +50,8 @@ class Db
         ];
         try {
             return new PDO($dsn, $user, $pass, $options);
-        } catch (\PDOException $e) {
-            throw new \PDOException($e->getMessage(), (int) $e->getCode());
+        } catch (PDOException $e) {
+            throw new PDOException($e->getMessage(), (int) $e->getCode());
         }
     }
 }

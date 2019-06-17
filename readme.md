@@ -134,6 +134,12 @@ There are multiple env variables the `app` container accepts:
 - `ES_HOST` - where the Elastic Search instance is hosted
 - `SERVER_MODE` - should the `app` entry script start the PHP server?
 
+To update env variables in containers:
+
+```bash
+docker-compose up -d
+```
+
 #### App server API
 
 There are two main endpoint:
@@ -168,7 +174,20 @@ Accepted params:
 **To check memory/cpu usage stats:** `docker stats`
 
 
+# App logs
 
+App logs are located in the `/app/logs` directory. There are few available log files:
+
+- `logs/app.log` main PHP app log
+- `logs/nginx.error.log` nginx error log
+- `logs/search.log` all application search related information
+- `logs/es.log` ElasticSearch trace logs
+
+To watch a logfile in real-time:
+
+```bash
+docker-compose exec app tail -f logs/search.log
+```
 
 
 # Build

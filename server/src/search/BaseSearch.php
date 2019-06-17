@@ -1,6 +1,9 @@
 <?php
 
-namespace Search\search;
+namespace app\search;
+
+use app\Indexes;
+use app\Logger;
 
 abstract class BaseSearch
 {
@@ -17,6 +20,8 @@ abstract class BaseSearch
     protected $withMeta = true;
     /** @var string optional index name to force searching only within that index */
     protected $index;
+    /** @var \Monolog\Logger */
+    protected $logger;
 
     /**
      * BaseSearch constructor.
@@ -31,15 +36,22 @@ abstract class BaseSearch
         $this->selectedFields = $selected;
         $this->withMeta = $withMeta;
         $this->index = $index;
+        $this->logger = Logger::get('search');
     }
 
     abstract public function search(string $query): array;
 
+    abstract protected function formatSuggestions(array $data): array;
+
+    protected function getIndexName(): string
+    {
+        return $this->index ?: implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]);
+    }
+
     /**
-     * Return the match query based on already selected fields to search only for related suggestions.
+     * Return the query condition based on already specified fields, so only related to these field values suggestions
+     * are returned.
      * Use `.norm` sub-field to ignore the case but preserve the spelling.
-     * todo: not sure, maybe we should fetch data ignoring the spelling too, so there's a broader set of results if
-     * there was a typo in query
      */
     protected function getSelectedFieldsFilter(): array
     {
@@ -48,51 +60,23 @@ abstract class BaseSearch
             $selectedMatch[] = ['term' => ["$field.norm" => $value]];
         }
 
-        return $selectedMatch;
+        return ['bool' => ['must' => $selectedMatch]];
     }
 
-    protected function formatResponse(array $result): array
+    /**
+     * Format the ES search result to be consumed by the web application.
+     */
+    protected function formatResponse(array $result, int $tookMs = null): array
     {
         if ($this->withMeta) {
             return $result;
         }
 
         return [
+            'tookMs' => $tookMs,
             'maxScore' => 0,
             'total' => $result['hits']['total'],
             'suggestions' => $this->formatSuggestions($result),
         ];
-    }
-
-    abstract protected function formatSuggestions(array $data): array;
-
-    protected function formatHit(array $item): array
-    {
-        return [
-            // renamed _id contains the EPF or spins id
-            '_id' => $item['_source']['id'] ?? $item['_id'],
-            '_index' => $item['_index'],
-
-            // Use ES id as identification, no need to leak EPF or spins ids to the client.
-            'id' => $item['_id'],
-            'score' => $this->formatScore($item['_score']),
-            'count' => 1,
-            'values' => [],
-        ];
-    }
-
-    protected function formatAggregation(array $item): array
-    {
-        return [
-            'id' => uniqid('', true),
-            'value' => $item['key'],
-            'score' => $this->formatScore($item['maxScore']['value'] ?? 0),
-            'count' => $item['doc_count'],
-        ];
-    }
-
-    protected function formatScore(float $score): string
-    {
-        return sprintf('%0.2f', $score);
     }
 }

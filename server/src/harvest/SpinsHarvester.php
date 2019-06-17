@@ -1,10 +1,11 @@
 <?php
 declare(strict_types=1);
 
-namespace Search\harvest;
+namespace app\harvest;
 
-use Search\Db;
-use Search\Indexes;
+use app\Db;
+use app\Indexes;
+use PDO;
 
 /**
  * When harvesting Spins, their original ids are used as ES "_id" field.
@@ -23,7 +24,7 @@ class SpinsHarvester extends BaseHarvester
         self::$maxId = static::getDb()->query('select max(id) from spin')->fetchColumn();
     }
 
-    protected static function getDb(): \PDO
+    protected static function getDb(): PDO
     {
         return Db::spins();
     }
