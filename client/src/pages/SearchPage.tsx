@@ -154,7 +154,7 @@ function Metadata({ data }: { data: any[] }) {
             <b>{f}:</b>
 
             {data
-              .map(item => item[f])
+              .map(item => item['_source'][f])
               .filter(_ => !!_)
               .join(', ')}
           </div>

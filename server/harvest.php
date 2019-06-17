@@ -6,6 +6,8 @@ use app\Indexes;
 
 require 'vendor/autoload.php';
 
+// todo: warm cache command to run from performance file
+
 $index = $argv[1] ?? null;
 $count = $argv[2] ?? 1;
 $reset = !!array_filter($argv, function ($s) {

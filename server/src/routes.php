@@ -66,7 +66,7 @@ $app->get('/api/chart', function (Request $request, Response $response) {
     $chart = $request->getQueryParam('chart', false);
 
     $search = new ChartSearch($type, $chart, (bool) $request->getQueryParam('meta', false));
-    $result = $search->search($query, ['page' => $page]);
+    $result = $search->search($query ?: [], ['page' => $page]);
 
     return $response->withJson($result);
 });

@@ -4,6 +4,7 @@ namespace app\search;
 
 use app\EsClient;
 use app\Indexes;
+use stdClass;
 
 class ChartSearch
 {
@@ -31,23 +32,26 @@ class ChartSearch
      */
     public function search(array $query, array $params = ['page' => 0]): array
     {
-        $data = null;
+        $result = null;
         if ($this->type === self::TYPE_SONG) {
-            $data = $this->searchSongs($query, $params['page']);
+            $result = $this->searchSongs($query, $params['page']);
         } elseif ($this->type === self::TYPE_ARTIST) {
-            $data = $this->searchArtists($query);
+            $result = $this->searchArtists($query);
         } elseif ($this->type === self::TYPE_RELEASE) {
-            $data = $this->searchReleases($query);
+            $result = $this->searchReleases($query);
         }
 
         if ($this->meta) {
-            return $data;
+            return $result;
         }
 
         return [
-            'totalCount' => $data['totalCount'],
+            'took' => $result['took'],
+            'totalCount' => $result['hits']['total'],
             'page' => $params['page'],
-            'rows' => $data['rows'],
+            'rows' => array_map(function (array $hit) {
+                return $hit['_source'];
+            }, $result['hits']['hits']),
         ];
     }
 
@@ -71,8 +75,8 @@ class ChartSearch
             $filter[] = ['term' => [$field => $value]];
         }
 
-        var_dump($fullTextQuery);
-        var_dump($filter);
+        //var_dump($fullTextQuery);
+        //var_dump($filter);
 
         $result = EsClient::build(true)->search([
             'index' => implode(',', [Indexes::EPF_IDX, Indexes::SPINS_IDX]),
@@ -84,13 +88,13 @@ class ChartSearch
                     // todo: use constant_score, we don't need relevance here
                     'bool' => [
                         'filter' => $filter,
-                        'must' => $fullTextQuery,
+                        'must' => $fullTextQuery ?: ['match_all' => new stdClass()],
                     ],
                 ],
                 //'aggs' => [
                 //
                 //],
-                'sort' => ['song_name.sort'],
+                //'sort' => ['song_name.sort'],
             ],
         ]);
 
