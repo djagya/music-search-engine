@@ -15,6 +15,12 @@ const defaultList = {
   release_title: null,
 };
 
+const LABELS: { [field: string]: string } = {
+  artist_name: 'Artist',
+  song_name: 'Song',
+  release_title: 'Release',
+};
+
 interface FieldsSearchResponse {
   [fields: string]: SearchResponse | null;
 }
@@ -99,7 +105,7 @@ export default function SearchPage() {
         selected={selected}
         typingResponse={typingResponse}
         relatedResponse={related}
-        placeholder={field}
+        placeholder={LABELS[field]}
         onTyping={typingHandler(field)}
         onSelect={selectionHandler(field)}
         onFocus={() => setActiveField(field)}
@@ -110,8 +116,6 @@ export default function SearchPage() {
   return (
     <div className={styles.container}>
       <Panel>
-        <Heading>Search</Heading>
-
         <div className={styles.Form}>
           {fields.map((field: string) => (
             <ErrorBoundary key={field}>{renderAcInput(field)}</ErrorBoundary>

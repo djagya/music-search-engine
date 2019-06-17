@@ -6,7 +6,6 @@ import { formatTotal } from '../../../utils';
 
 interface GridProps {
   response: ChartResponse | null;
-  page: number;
   onPageChange: any;
   children: any;
 }
@@ -15,7 +14,10 @@ export default function Grid({ response, onPageChange, children }: GridProps) {
   return (
     <div className={styles.Grid}>
       <Summary response={response} />
-      {children}
+
+      <div className={styles.tableContainer}>
+        {children}
+      </div>
 
       {response && <Pagination response={response} onPageChange={onPageChange} />}
     </div>
@@ -23,7 +25,7 @@ export default function Grid({ response, onPageChange, children }: GridProps) {
 }
 
 function Summary({ response }: { response: ChartResponse | null }) {
-  const range = ({ page, pageSize }: ChartResponse) => `${page * pageSize} - ${(page + 1) * pageSize - 1}`;
+  const range = ({ page, pageSize }: ChartResponse) => `${page * pageSize + 1} - ${(page + 1) * pageSize}`;
   return (
     <div className={styles.Summary}>
       <span>
@@ -39,12 +41,12 @@ function Summary({ response }: { response: ChartResponse | null }) {
   );
 }
 
-export function Th({ name, label }: { name: string; label: string }) {
+export function Th({ name, label, placeholder }: { name: string; label: string; placeholder?: string }) {
   return (
     <th>
       <div>
         <span>{label}</span>
-        <input type="text" name={`query[${name}]`} placeholder={`${label} filter`} />
+        <input type="text" name={`query[${name}]`} placeholder={placeholder || `${label} filter`} />
       </div>
     </th>
   );
@@ -52,23 +54,20 @@ export function Th({ name, label }: { name: string; label: string }) {
 
 function Pagination({ response, onPageChange }: { response: ChartResponse; onPageChange: any }) {
   const VISIBLE_PAGES_LIMIT = 10;
-
   const pagesCount = Math.ceil(response.total.value / PAGE_SIZE);
   const displayPages = Math.min(pagesCount, VISIBLE_PAGES_LIMIT);
 
   return (
-    <div>
-      <ul style={{ display: 'flex', listStyle: 'none', padding: '0', margin: '0' }}>
-        {Array.from(Array(displayPages).keys()).map(p => (
-          <li key={p} style={{ marginLeft: '10px' }}>
-            <a href="#" className={response.page === p ? styles.activePage : undefined} onClick={() => onPageChange(p)}>
-              {p + 1}
-            </a>
-          </li>
-        ))}
+    <ul className={styles.Pagination}>
+      {Array.from(Array(displayPages).keys()).map(p => (
+        <li className={response.page === p ? styles.active : undefined} key={p}>
+          <a href="#" onClick={() => onPageChange(p)}>
+            {p + 1}
+          </a>
+        </li>
+      ))}
 
-        {displayPages < pagesCount && <li>...</li>}
-      </ul>
-    </div>
+      {displayPages < pagesCount && <li>...</li>}
+    </ul>
   );
 }

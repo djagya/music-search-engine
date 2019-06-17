@@ -1,12 +1,11 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from './Chart.module.scss';
-import { Heading } from '../../components/UI';
 import { fetchChartRows } from '../../data';
 import { ChartResponse } from '../../types';
 import SongsTable from './components/SongsTable';
 import ReleasesTable from './components/ReleasesTable';
 import ArtistsTable from './components/ArtistsTable';
-import { ChartModeSwitch, OptionSelect } from './components/GridSettings';
+import { OptionSelect } from './components/GridSettings';
 import Grid from './components/Grid';
 
 const TYPE_SONGS = 'songs';
@@ -25,7 +24,7 @@ export const LABELS: any = {
   song_name: 'Song',
 };
 
-export const PAGE_SIZE = 25;
+export const PAGE_SIZE = 50;
 
 /**
  * todo: "chart mode" should probably use data only from the 'spins' index? it doesn't make sense to chart epf data?
@@ -33,12 +32,14 @@ export const PAGE_SIZE = 25;
  */
 export default function ChartPage() {
   const [gridType, setGridType] = useState(TYPE_SONGS);
-  const [chartMode, setChartMode] = useState<boolean>(false);
-  const [query, setQuery] = useState({ artist: '', release: '', song: '' });
-  const [page, setPage] = useState<number>(0);
-  const [response, setResponse] = useState<ChartResponse | null>(null);
   const [index, setIndex] = useState<string>('spins');
+  const [chartMode, setChartMode] = useState<boolean>(false);
+  const [response, setResponse] = useState<ChartResponse | null>(null);
   const formNode = useRef<HTMLFormElement>(null);
+
+  useEffect(() => {
+    setResponse(null);
+  }, [gridType, index]);
 
   /**
    * Collect and send form data.
@@ -77,8 +78,6 @@ export default function ChartPage() {
         }}
         ref={formNode}
       >
-        <Heading>Chart</Heading>
-
         <GridSettings
           gridType={gridType}
           index={index}
@@ -88,11 +87,12 @@ export default function ChartPage() {
           onChartModeChange={e => setChartMode(e.currentTarget.checked)}
         />
 
-        <button className={styles.submit} type="submit">
+        <button className={styles.submitButton} type="submit">
           Search
         </button>
+        <button type="reset" onClick={() => fetchData(0)}>Reset</button>
 
-        <Grid response={response} page={page} onPageChange={(p: number) => fetchData(p)}>
+        <Grid response={response} onPageChange={(p: number) => fetchData(p)}>
           {renderTable()}
         </Grid>
       </form>
@@ -115,6 +115,7 @@ function GridSettings({
   onIndexChange: { (e: React.ChangeEvent<HTMLInputElement>): void };
   onChartModeChange: { (e: React.ChangeEvent<HTMLInputElement>): void };
 }) {
+  // todo: for now chart is hidden, it's an additional feature that is not required
   return (
     <div className={styles.gridSettings}>
       <OptionSelect
@@ -128,7 +129,7 @@ function GridSettings({
       <OptionSelect name="index" items={{ spins: 'Spins', epf: 'Apple Music' }} active={index} onChange={onIndexChange}>
         in:
       </OptionSelect>
-      <ChartModeSwitch chartMode={chartMode} onChange={onChartModeChange} />
+      {/*<ChartModeSwitch chartMode={chartMode} onChange={onChartModeChange} />*/}
     </div>
   );
 }

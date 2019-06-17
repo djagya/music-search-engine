@@ -5,6 +5,7 @@ namespace app\harvest;
 
 use app\Db;
 use app\Indexes;
+use app\search\BaseSearch;
 use PDO;
 
 /**
@@ -38,12 +39,18 @@ class SpinsHarvester extends BaseHarvester
     {
         $body = [];
         foreach ($batch as $row) {
+            $valid = !array_filter(BaseSearch::AC_FIELDS, function ($field) use ($row) {
+                return empty($row[$field]);
+            });
+            if (!$valid) {
+                continue;
+            }
+
             $body[] = [
                 'index' => [
                     '_index' => static::INDEX_NAME,
                 ],
             ];
-
             $body[] = $this->mapRow($row);
         }
 

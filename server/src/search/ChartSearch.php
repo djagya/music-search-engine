@@ -6,7 +6,6 @@ use app\EsClient;
 use app\Indexes;
 use app\Logger;
 use InvalidArgumentException;
-use stdClass;
 
 class ChartSearch
 {
@@ -17,6 +16,9 @@ class ChartSearch
     protected $type = self::TYPE_SONGS;
     protected $chartMode = false;
     protected $meta = false;
+    protected $sort = null;
+    /** @var null -1|1 */
+    protected $direction = null;
     protected $index;
     protected $logger;
     protected $es;
@@ -43,8 +45,10 @@ class ChartSearch
     public function search(array $query, array $params = ['page' => 0, 'pageSize' => 25]): array
     {
         $this->index = !empty($params['index']) ? $params['index'] : null;
-        $this->page = $params['page'];
-        $this->pageSize = $params['pageSize'];
+        $this->page = (int) $params['page'];
+        $this->pageSize = (int) $params['pageSize'];
+        $this->sort = $params['sort'] ?? null;
+        $this->direction = $params['direction'] ?? null;
 
         $result = null;
         if ($this->type === self::TYPE_SONGS) {
@@ -64,8 +68,8 @@ class ChartSearch
         return [
             'took' => $result['took'],
             'total' => $result['hits']['total'],
-            'page' => $params['page'],
-            'pageSize' => $params['pageSize'],
+            'page' => $this->page,
+            'pageSize' => $this->pageSize,
             'rows' => array_map(function (array $hit) {
                 return array_merge(['_id' => $hit['_id']], $hit['_source']);
             }, $result['hits']['hits']),
@@ -85,13 +89,22 @@ class ChartSearch
         //}
 
         // Generate query for fields with supported prefix search (main AC fields). Use root indexed field.
+        // todo: write in bachelor. elasticsearch doesn't store positions of terms (unless it's enabled as term_vector),
+        // so can't use edge_ngrams for prefix matching as it doesn't fetch values STARTING with the specified filter.
         $fullTextQuery = [];
         foreach (BaseSearch::AC_FIELDS as $fullTextField) {
             if (!empty($query[$fullTextField])) {
-                $fullTextQuery[] = ['match' => [$fullTextField => $query[$fullTextField]]];
+                $fullTextQuery[] = ['prefix' => ["$fullTextField.norm" => $query[$fullTextField]]];
                 unset($query[$fullTextField]);
             }
         }
+
+        // todo: implement filters for released year.
+        $filters = [
+            'label' => 'label_name.norm',
+            'genre',
+            'released' => 'range',
+        ];
 
         // For the remaining fields generate a filter query.
         $filter = [];
@@ -101,23 +114,46 @@ class ChartSearch
             }
         }
 
+        $sort = $this->index === 'spins' && $this->sort === 'spin_timestamp'
+            ? ['spin_timestamp' => $this->direction === '-1' ? 'desc' : '1']
+            : ['song_name.sort'];
+
         $params = [
             'index' => $this->getIndexName(),
             'size' => $this->pageSize,
             'from' => $from,
             'body' => [
+
+                //'query' => [
+                //    'bool' => [
+                //        'filter' => [
+                //            'bool' => [
+                //                'must' => [
+                //                    ['match' => []]
+                //                ],
+                //            ],
+                //        ],
+                //    ],
+                //],
                 'query' => [
-                    'bool' => [
-                        'filter' => $filter,
-                        'must' => $fullTextQuery ?: ['match_all' => new stdClass()],
+                    'constant_score' => [
+                        'filter' => [
+                            'bool' => [
+                                'must' => array_merge($filter, $fullTextQuery),
+                            ],
+                        ],
                     ],
                 ],
-                'size' => 0,
+                //'query' => [
+                //    'bool' => [
+                //        'filter' => $filter,
+                //        'must' => $fullTextQuery ?: ['match_all' => new stdClass()],
+                //    ],
+                //],
                 //'aggs' => [
                 //
                 //],
-                // todo: sort
-                //'sort' => ['song_name.sort'],
+                'sort' => $sort,
             ],
         ];
         if ($this->chartMode) {
@@ -149,7 +185,9 @@ class ChartSearch
 
         $this->logParams("Chart [{$this->type}] params", $params);
         $result = $this->es->search($params);
-        $this->logger->info("Chart [{$this->type}] took {$result['ms']}ms");
+        $this->logger->info("Chart [{$this->type}] took {$result['took']}ms");
+
+        $result['query'] = $params['body'];
 
         return $result;
     }

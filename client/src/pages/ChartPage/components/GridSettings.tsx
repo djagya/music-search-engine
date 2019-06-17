@@ -15,7 +15,7 @@ export function OptionSelect({ name, items, active, onChange, children }: Option
       <b>{children}</b>&nbsp;
       <ul>
         {Object.keys(items).map(key => (
-          <li>
+          <li key={key}>
             <label>
               <input type="radio" name={name} value={key} checked={key === active} onChange={onChange} />
               &nbsp;
@@ -25,30 +25,6 @@ export function OptionSelect({ name, items, active, onChange, children }: Option
         ))}
       </ul>
     </div>
-  );
-}
-
-function RadioItem({
-  name,
-  value,
-  checked,
-  onChange,
-  children,
-}: {
-  name: string;
-  value: string;
-  checked: boolean;
-  onChange: { (e: React.ChangeEvent<HTMLInputElement>): void };
-  children: any;
-}) {
-  return (
-    <li>
-      <label>
-        <input type="radio" name={name} value={value} checked={checked} onChange={onChange} />
-        &nbsp;
-        {children}
-      </label>
-    </li>
   );
 }
 

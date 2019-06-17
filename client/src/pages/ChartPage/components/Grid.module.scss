@@ -1,16 +1,49 @@
 $spacing: 0.5em;
 $accentColor: #ef6c00;
+$grey: #eeeeee;
+$lightGrey: #f5f5f5;
 
 .Grid {
     margin-top: $spacing * 2;
     border-top: solid 2px $accentColor;
+}
 
-    th:not(:empty) {
-        background-color: #eeeeee;
+.tableContainer {
+    overflow-x: auto;
+
+    table {
+        border-spacing: 0;
+    }
+
+    th {
+        background-color: $grey;
 
         div {
             display: inline-flex;
             flex-direction: column;
+        }
+
+        input {
+            font-size: 1em;
+        }
+    }
+
+    tr:nth-child(odd) {
+        background-color: rgba(46, 125, 50, 0.1);
+    }
+
+    td, th {
+        padding: $spacing/ 2
+    }
+
+    td {
+        span + span::before {
+            content: ', ';
+        }
+
+        small {
+            font-size: 0.8em;
+            color: #757575;
         }
     }
 }
@@ -21,5 +54,34 @@ $accentColor: #ef6c00;
 
     > * + * {
         margin-left: $spacing * 2;
+    }
+}
+
+.Pagination {
+    display: flex;
+    padding: $spacing 0;
+
+    li {
+        background-color: $grey;
+    }
+
+    li.active {
+        background-color: $accentColor;
+
+        a {
+            color: white;
+            font-weight: bold;
+            text-decoration: none;
+        }
+    }
+
+    a {
+        display: inline-block;
+        padding: $spacing / 2 $spacing;
+        color: $accentColor;
+    }
+
+    li + li {
+        margin-left: $spacing;
     }
 }

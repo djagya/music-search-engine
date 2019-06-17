@@ -16,7 +16,6 @@ fi
 if [[ "$1" == "spins" ]]; then
     echo "Unpacking Spins database from: $DIR/spins-myisam-tables.tgz"; echo
     tar --directory /var/lib/mysql -zxvf ${DIR}/spins-myisam-tables.tgz
-    mv /var/lib/mysql/var/lib/mysql/datadir/spinitron2/* /var/lib/mysql/spins/
 
     echo; echo "---------------"
     echo "Now restart the DB container:";

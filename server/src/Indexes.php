@@ -17,6 +17,11 @@ class Indexes
     {
         $this->index = $index;
         $this->reset = $reset;
+        Logger::get()->pushProcessor(function ($entry) {
+            echo $entry['message'] . "\n";
+
+            return $entry;
+        });
     }
 
     /**
@@ -85,19 +90,6 @@ class Indexes
                         'tokenizer' => 'icu_tokenizer',
                         'filter' => ['icu_folding'],
                     ],
-                    // To sort keywords in different languages and spellings app using DUCET collation.
-                    // Emits keys for efficient sorting.
-                    'ducetSort' => [
-                        'tokenizer' => 'keyword',
-                        'filter' => ['icu_collation'],
-                    ],
-                ],
-                'tokenizer' => [
-                    'acTokenizer' => [
-                        'type' => 'edge_ngram',
-                        'min_gram' => 2,
-                        'max_gram' => 20,
-                    ],
                 ],
                 'normalizer' => [
                     // To group found hits.
@@ -109,7 +101,7 @@ class Indexes
                 'filter' => [
                     'acFilter' => [
                         'type' => 'edge_ngram',
-                        'min_gram' => 2,
+                        'min_gram' => 1,
                         'max_gram' => 20,
                     ],
                 ],
@@ -138,7 +130,14 @@ class Indexes
      */
     protected static function getMappings(): array
     {
-        $props = [];
+        $props = [
+            'label_name' => [
+                'type' => 'keyword',
+                'fields' => [
+                    'norm' => ['type' => 'keyword', 'normalizer' => 'caseInsensitive'],
+                ],
+            ],
+        ];
         foreach (BaseSearch::AC_FIELDS as $column) {
             $props[$column] = [
                 'type' => 'text',
@@ -147,7 +146,9 @@ class Indexes
                 'fields' => [
                     'raw' => ['type' => 'keyword'],
                     'norm' => ['type' => 'keyword', 'normalizer' => 'caseInsensitive'],
-                    'sort' => ['type' => 'text', 'analyzer' => 'ducetSort'],
+                    // To sort keywords in different languages and spellings app using DUCET collation.
+                    // Emits keys for efficient sorting.
+                    'sort' => ['type' => 'icu_collation_keyword', 'index' => false],
                 ],
             ];
         }

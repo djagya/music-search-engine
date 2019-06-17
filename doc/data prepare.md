@@ -6,6 +6,7 @@ rsync -azP data/spins-myisam-tables.tgz  -e "ssh -i $HOME/.ssh/bachelor-search.p
 That's the query to create the spins_dump table on bhs3:
 
 ```sql
+drop table if exists spins_dump;
 create table spins_dump ENGINE = MyISAM 
 SELECT id, 
     artist_name, -- artist
@@ -28,5 +29,5 @@ cd /tmp && tar -C /var/lib/mysql/datadir/spinitron2/ -czvf spins-myisam-tables.t
 Then to copy to my machine:
 
 ```bash
-rsync -azP root@bhs3:/tmp/spins-myisam-tables.tgz data/
+rsync -azP root@bhs3:/tmp/data_dump/spins-myisam-tables.tgz data/
 ```

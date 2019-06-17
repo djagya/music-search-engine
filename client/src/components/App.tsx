@@ -3,9 +3,15 @@ import styles from './App.module.scss';
 import InstanceStatus from './InstanceStatus';
 import SearchView from '../pages/SearchPage';
 import ChartView from '../pages/ChartPage/ChartPage';
+import { Heading } from './UI';
 
 const DEFAULT_ROUTE = '/chart';
 // const DEFAULT_ROUTE = '/search';
+
+const TITLES: { [route: string]: string } = {
+  '/chart': 'Chart',
+  '/search': 'Search',
+};
 
 export default function App() {
   const [route, setRoute] = useState<string>(DEFAULT_ROUTE);
@@ -16,17 +22,21 @@ export default function App() {
     setRoute(e.currentTarget.pathname);
   }
 
+  const link = (r: string) => (
+    <a href={r} className={route === r ? styles.navActive : undefined} onClick={handleNavClick}>
+      {TITLES[r]}
+    </a>
+  );
+
   return (
     <div className={styles.App}>
       <header className={styles.header}>
         <ul className={styles.nav}>
-          <a href="/search" className={route === '/search' ? styles.navActive : undefined} onClick={handleNavClick}>
-            Search
-          </a>
-          <a href="/chart" className={route === '/chart' ? styles.navActive : undefined} onClick={handleNavClick}>
-            Chart
-          </a>
+          {link('/search')}
+          {link('/chart')}
         </ul>
+
+        <Heading h={2}>{TITLES[route]}</Heading>
 
         <div className={styles.instance}>
           <span>AWS instance &nbsp;</span>
