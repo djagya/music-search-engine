@@ -94,6 +94,9 @@ class TypingSearch extends BaseSearch
                             ],
                         ],
                     ],
+                    'totalCount' => [
+                        'cardinality' => ['field' => "$field.norm"],
+                    ],
                 ],
                 'size' => 0, // don't return search hits, because we work with aggregated buckets only
                 // todo: also maybe implement search cancellation when a new request was received

@@ -75,7 +75,10 @@ abstract class BaseSearch
         return [
             'tookMs' => $result['took'],
             'maxScore' => 0,
-            'total' => $result['hits']['total'],
+            //'total' => $result['hits']['total'],
+            'total' => !empty($result['aggregations']['totalCount']['value'])
+                ? ['value' => $result['aggregations']['totalCount']['value'], 'relation' => '']
+                : $result['hits']['total'],
             'suggestions' => $this->formatSuggestions($result),
         ];
     }

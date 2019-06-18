@@ -31,6 +31,9 @@ class RelatedSearch extends BaseSearch
                             ],
                         ],
                     ],
+                    'totalCount' => [
+                        'cardinality' => ['field' => "$emptyField.norm"],
+                    ],
                 ],
             ];
 
