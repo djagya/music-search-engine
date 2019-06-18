@@ -39,10 +39,10 @@ class SpinsHarvester extends BaseHarvester
     {
         $body = [];
         foreach ($batch as $row) {
-            $valid = !array_filter(BaseSearch::AC_FIELDS, function ($field) use ($row) {
+            $emptyFields = array_filter(BaseSearch::AC_FIELDS, function ($field) use ($row) {
                 return empty($row[$field]);
             });
-            if (!$valid) {
+            if ($emptyFields) {
                 continue;
             }
 

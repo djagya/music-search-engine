@@ -106,7 +106,8 @@ abstract class BaseHarvester
         $toId = $fromId + self::BATCH_SIZE;
         $step = self::BATCH_SIZE * $this->totalForks;
 
-        $this->log(sprintf('started from ID %s to ID %s, max song id %s', self::format($fromId), self::format($toId), self::format(self::$maxId)));
+        $this->log(sprintf('started from ID %s to ID %s, max song id %s', self::format($fromId), self::format($toId),
+            self::format(self::$maxId)));
 
         $query = $this->getQuery();
         $params = [
@@ -130,13 +131,16 @@ abstract class BaseHarvester
             // Convert to ES query body.
             $params['body'] = $this->getEsBatchBody($rows->fetchAll());
 
-            // Send the BULK request to ES.
-            try {
-                $client->bulk($params);
-            } catch (Throwable $e) {
-                $this->log("Error: {$e->getMessage()}");
+            if (!empty($params['body'])) {
+                // Send the BULK request to ES.
+                try {
+                    $client->bulk($params);
+                } catch (Throwable $e) {
+                    $this->log("Error: {$e->getMessage()}");
+                }
             }
-            $this->log(sprintf('batch %s – %s out of %s', self::format($fromId), self::format($toId), self::format(self::$maxId)));
+            $this->log(sprintf('batch %s – %s out of %s', self::format($fromId), self::format($toId),
+                self::format(self::$maxId)));
 
             // Prepare for a new batch.
             $params = ['body' => []];
