@@ -32,8 +32,13 @@ export interface ErrorResponse {
 export interface ChartResponse {
   total: Total;
   took: number;
-  page: number;
-  pageSize: number;
+  pagination: {
+    page: number;
+    pageSize: number;
+    after: string | null;
+    prev: string | null;
+    sort: string | null;
+  };
   rows: any[];
 }
 

@@ -4,7 +4,17 @@ import { FIELDS, formatDuration, LABELS } from '../ChartPage';
 import { Th } from './Grid';
 
 // todo: implement sorting by timestamp for spins, and other fields for both indexes
-export default function SongTable({ rows, charted }: { rows: any[]; charted: boolean }) {
+export default function SongTable({
+  rows,
+  charted,
+  currentSort,
+  onSortChange,
+}: {
+  rows: any[];
+  charted: boolean;
+  currentSort: string | null;
+  onSortChange: any;
+}) {
   const hasTimestamp = rows[0] && rows[0].spin_timestamp;
 
   return (
@@ -12,15 +22,29 @@ export default function SongTable({ rows, charted }: { rows: any[]; charted: boo
       <thead>
       <tr>
         {charted && <th>Rank</th>}
-        {hasTimestamp && <th>Timestamp</th>}
+        {hasTimestamp && (
+          <Th
+            name="spin_timestamp"
+            label="Timestamp"
+            sortable
+            currentSort={currentSort}
+            onSortChange={onSortChange}
+          />
+        )}
         <th />
 
         <Th name={FIELDS.artist} label={LABELS[FIELDS.artist]} />
-        <Th name={FIELDS.song} label={LABELS[FIELDS.song]} />
+        <Th
+          name={FIELDS.song}
+          label={LABELS[FIELDS.song]}
+          sortable
+          currentSort={currentSort}
+          onSortChange={onSortChange}
+        />
         <Th name={FIELDS.release} label={LABELS[FIELDS.release]} />
         <Th name={'label_name'} label="Label" />
-        <Th name={'genre_name'} label="Genre" />
-        <Th name={'release_year_released'} label="Released" placeholder={"[year] or [from]-[to]"} />
+        <Th name={'release_genre'} label="Genre" />
+        <Th name={'release_year_released'} label="Released" placeholder={'[year] or [from]-[to]'} />
 
         <th>Data</th>
       </tr>
@@ -46,8 +70,16 @@ export default function SongTable({ rows, charted }: { rows: any[]; charted: boo
           <td>
             {row.release_various_artists == 1 && <span>V/A</span>}
             {row.release_medium && <span>{row.release_medium}</span>}
-            {row.song_isrc && <span><b>ISRC:</b> {row.song_isrc}</span>}
-            {row.release_upc && <span><b>UPC:</b> {row.release_upc}</span>}
+            {row.song_isrc && (
+              <span>
+                  <b>ISRC:</b> {row.song_isrc}
+                </span>
+            )}
+            {row.release_upc && (
+              <span>
+                  <b>UPC:</b> {row.release_upc}
+                </span>
+            )}
           </td>
         </tr>
       ))}
@@ -57,5 +89,4 @@ export default function SongTable({ rows, charted }: { rows: any[]; charted: boo
 }
 
 function formatData(data: any) {
-
 }

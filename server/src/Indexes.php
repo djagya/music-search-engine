@@ -62,7 +62,7 @@ class Indexes
                         'settings' => [
                                 'number_of_shards' => getenv('ENV') === 'production' ? 3 : 1,
                             ] + static::getSettings(),
-                        'mappings' => static::getMappings(),
+                        'mappings' => static::getMappings($this->index),
                     ],
                 ]);
         }
@@ -128,7 +128,7 @@ class Indexes
      *      Allow to differentiate between differently spelled names, as they usually represent different
      *      artists/songs/releases.
      */
-    protected static function getMappings(): array
+    protected static function getMappings(string $index): array
     {
         $props = [
             'label_name' => [
@@ -137,7 +137,24 @@ class Indexes
                     'norm' => ['type' => 'keyword', 'normalizer' => 'caseInsensitive'],
                 ],
             ],
+            'release_genre' => [
+                'type' => 'keyword',
+                'fields' => [
+                    'norm' => ['type' => 'keyword', 'normalizer' => 'caseInsensitive'],
+                ],
+            ],
+            'release_year_released' => [
+                'type' => 'short',
+                'ignore_malformed' => true,
+            ],
         ];
+        if ($index === self::SPINS_IDX) {
+            $props['spin_timestamp'] = [
+                'type' => 'date',
+                'format' => 'yyyy-MM-dd HH:mm:ss',
+            ];
+        }
+
         foreach (BaseSearch::AC_FIELDS as $column) {
             $props[$column] = [
                 'type' => 'text',

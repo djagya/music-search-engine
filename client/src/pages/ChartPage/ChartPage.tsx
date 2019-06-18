@@ -26,12 +26,14 @@ export const LABELS: any = {
 
 export const PAGE_SIZE = 50;
 
+const initPagination = { page: 0, pageSize: PAGE_SIZE, after: null, prev: null };
+
 /**
  * todo: "chart mode" should probably use data only from the 'spins' index? it doesn't make sense to chart epf data?
  *
  */
 export default function ChartPage() {
-  const [gridType, setGridType] = useState(TYPE_SONGS);
+  const [gridType, setGridType] = useState(TYPE_ARTISTS);
   const [index, setIndex] = useState<string>('spins');
   const [chartMode, setChartMode] = useState<boolean>(false);
   const [response, setResponse] = useState<ChartResponse | null>(null);
@@ -44,13 +46,19 @@ export default function ChartPage() {
   /**
    * Collect and send form data.
    */
-  function fetchData(page: number = 0) {
+  function fetchData(pagination: { page?: number; after?: string | null; sort?: string | null }) {
     const formData = Array.from(new FormData(formNode.current!).entries()).reduce((acc, [key, value]) => {
       return { ...acc, [key]: value.toString() };
     }, {});
 
-    console.log('query body', formData);
-    fetchChartRows(formData, { page, pageSize: PAGE_SIZE, index }).then(res => {
+    const params = {
+      ...(response ? response.pagination : {}),
+      ...pagination,
+      pageSize: PAGE_SIZE,
+      index,
+    };
+    console.log('fetching data', { params, formData });
+    fetchChartRows(formData, params).then(res => {
       console.log('response', res);
 
       if ('error' in res) {
@@ -63,10 +71,20 @@ export default function ChartPage() {
 
   function renderTable() {
     const rows = (response && response.rows) || [];
+    const component: { [type: string]: any } = {
+      [TYPE_SONGS]: SongsTable,
+      [TYPE_ARTISTS]: ArtistsTable,
+      [TYPE_RELEASES]: ReleasesTable,
+    };
 
-    if (gridType === TYPE_SONGS) return <SongsTable rows={rows} charted={chartMode} />;
-    if (gridType === TYPE_ARTISTS) return <ArtistsTable rows={rows} charted={chartMode} />;
-    if (gridType === TYPE_RELEASES) return <ReleasesTable rows={rows} charted={chartMode} />;
+    return React.createElement(component[gridType], {
+      rows,
+      charted: chartMode,
+      currentSort: response && response.pagination.sort,
+      onSortChange: (sort: string | null) => {
+        fetchData({ sort });
+      },
+    });
   }
 
   return (
@@ -74,7 +92,7 @@ export default function ChartPage() {
       <form
         onSubmit={(e: any) => {
           e.preventDefault();
-          fetchData(0);
+          fetchData({ page: 0, after: null });
         }}
         ref={formNode}
       >
@@ -82,17 +100,24 @@ export default function ChartPage() {
           gridType={gridType}
           index={index}
           chartMode={chartMode}
-          onTypeChange={e => setGridType(e.currentTarget.value)}
-          onIndexChange={e => setIndex(e.currentTarget.value)}
+          onTypeChange={e => {
+            setGridType(e.currentTarget.value);
+            setResponse(null);
+          }}
+          onIndexChange={e => {
+            setIndex(e.currentTarget.value);
+            setResponse(null);
+          }}
           onChartModeChange={e => setChartMode(e.currentTarget.checked)}
         />
-
         <button className={styles.submitButton} type="submit">
           Search
         </button>
-        <button type="reset" onClick={() => fetchData(0)}>Reset</button>
-
-        <Grid response={response} onPageChange={(p: number) => fetchData(p)}>
+        &nbsp;
+        <button type="reset" onClick={() => fetchData({ page: 0, after: null })}>
+          Reset
+        </button>
+        <Grid response={response} onPageChange={(page: number, after: string | null) => fetchData({ page, after })}>
           {renderTable()}
         </Grid>
       </form>
