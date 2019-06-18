@@ -64,6 +64,8 @@ class SpinsHarvester extends BaseHarvester
 
     protected function mapRow(array $row): array
     {
-        return $row;
+        return array_map(function ($v) {
+            return is_string($v) ? str_replace("\n", ' ', $v) : $v;
+        }, $row);
     }
 }
