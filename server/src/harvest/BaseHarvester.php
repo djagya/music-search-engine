@@ -5,7 +5,6 @@ namespace app\harvest;
 
 use app\EsClient;
 use PDO;
-use Throwable;
 
 abstract class BaseHarvester
 {
@@ -133,11 +132,7 @@ abstract class BaseHarvester
 
             if (!empty($params['body'])) {
                 // Send the BULK request to ES.
-                try {
-                    $client->bulk($params);
-                } catch (Throwable $e) {
-                    $this->log("Error: {$e->getMessage()}");
-                }
+                $client->bulk($params);
             }
             $this->log(sprintf('batch %s – %s out of %s', self::format($fromId), self::format($toId),
                 self::format(self::$maxId)));
