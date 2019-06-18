@@ -18,6 +18,6 @@ RUN chown www-data:www-data logs
 RUN php /usr/bin/composer.phar install --no-dev --no-interaction -o -d server
 # If building for the server mode, install web app packages
 RUN bash -c "[[ "${SERVER_MODE}" == 1 ]]" && cd client \
-    && npm install rebuild node-sass && npm install --production && npm run-script build
+    && npm install rebuild node-sass && npm install --production && npm run-script build || echo "Skipping"
 
 CMD bash /app/server/docker-entrypoint.sh
