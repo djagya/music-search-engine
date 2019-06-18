@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 
+# To run on bhs3
+
 rm -rf /tmp/data_dump
 mkdir -p /tmp/data_dump/spins
 
