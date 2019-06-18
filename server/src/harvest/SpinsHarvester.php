@@ -46,7 +46,7 @@ class SpinsHarvester extends BaseHarvester
                 continue;
             }
 
-            $body[] = ['index' => []];
+            $body[] = ['index' => ['_index' => static::INDEX_NAME]];
             $body[] = $this->mapRow($row);
         }
 
