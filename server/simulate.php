@@ -46,7 +46,7 @@ while (($line = fgets($perfLog)) !== false) {
         'datetime' => date('Y-m-d H:i:s'),
         'took' => $result['tookMs'],
         'count' => $result['total']['value'],
-        'origTook' => $origTime * 1000,
+        'origTook' => $origTime,
         'origCount' => $body['n'],
     ];
     fputcsv($resLog, $data);
