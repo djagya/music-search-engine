@@ -46,11 +46,7 @@ class SpinsHarvester extends BaseHarvester
                 continue;
             }
 
-            $body[] = [
-                'index' => [
-                    '_index' => static::INDEX_NAME,
-                ],
-            ];
+            $body[] = ['index' => []];
             $body[] = $this->mapRow($row);
         }
 
@@ -65,7 +61,7 @@ class SpinsHarvester extends BaseHarvester
     protected function mapRow(array $row): array
     {
         return array_map(function ($v) {
-            return is_string($v) ? str_replace("\n", ' ', $v) : $v;
+            return is_string($v) ? str_replace(["\n", "\r"], ' ', $v) : $v;
         }, $row);
     }
 }
