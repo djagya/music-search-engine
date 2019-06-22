@@ -60,6 +60,10 @@ class SpinsHarvester extends BaseHarvester
 
     protected function mapRow(array $row): array
     {
+        if (array_key_exists('song_composer', $row)) {
+            unset($row['song_composer']);
+        }
+
         return array_map(function ($v) {
             return is_string($v) ? str_replace(["\n", "\r"], ' ', $v) : $v;
         }, $row);

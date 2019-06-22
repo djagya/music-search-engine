@@ -16,6 +16,7 @@ abstract class BaseHarvester
 
     protected static $minId;
     protected static $maxId;
+    protected static $startTime;
 
     protected $forkN;
     protected $totalForks;
@@ -54,6 +55,8 @@ abstract class BaseHarvester
      */
     protected static function before(): void
     {
+        static::$startTime = microtime(true);
+
         // Temporary make the index more performance for insert.
         EsClient::build()->indices()->putSettings([
             'index' => static::INDEX_NAME,
@@ -69,17 +72,29 @@ abstract class BaseHarvester
      */
     protected static function after(): void
     {
+        $index = static::INDEX_NAME;
         $client = EsClient::build();
         // Change the settings back.
         $client->indices()->putSettings([
-            'index' => static::INDEX_NAME,
+            'index' => $index,
             'body' => [
                 'refresh_interval' => null,
             ],
         ]);
-
         // Update replicas.
-        $client->indices()->forceMerge(['index' => static::INDEX_NAME]);
+        $client->indices()->forceMerge(['index' => $index]);
+
+        $totalTime = microtime(true) - static::$startTime;
+        $m = floor($totalTime / 60);
+        $readableTime = ($m > 0 ? "{$m}m" : '') . round($totalTime % 60) . 's';
+
+        $stats = $client->indices()->stats(['index' => $index])['indices'][$index]['total'];
+        $count = $stats['docs']['count'];
+        $size = $stats['store']['size_in_bytes'] / 1024 / 1024;
+
+        echo "\n----------------------------------\n";
+        echo sprintf("Time\tDoc count\tSize (MB)\n");
+        echo sprintf("%-s\t%-9s\t%-.2f\n", $readableTime, number_format($count), $size);
     }
 
     /**
@@ -105,9 +120,11 @@ abstract class BaseHarvester
         $fromId = self::$minId + self::BATCH_SIZE * $this->forkN; // forkN 0 - from id 0
         $toId = $fromId + self::BATCH_SIZE;
         $step = self::BATCH_SIZE * $this->totalForks;
+        $totalBatches = (int) ceil((self::$maxId - $fromId) / $step);
 
         $this->log(sprintf('started from ID %s to ID %s, max song id %s', self::format($fromId), self::format($toId),
             self::format(self::$maxId)));
+        $this->log(sprintf('total batches: %s', self::format($totalBatches)));
 
         $query = $this->getQuery();
         $params = [
@@ -115,6 +132,7 @@ abstract class BaseHarvester
             'body' => [],
         ];
         $indexedCount = 0;
+        $batchN = 0;
         do {
             // Fetch the next data batch.
             $rows = $pdo->prepare($query);
@@ -123,6 +141,7 @@ abstract class BaseHarvester
             $indexedCount += $rows->rowCount();
             $fromId += $step;
             $toId += $step;
+            $batchN += 1;
 
             if (!$rows->rowCount()) {
                 continue;
@@ -137,10 +156,12 @@ abstract class BaseHarvester
                     $client->bulk($params);
                 }
             } catch (Throwable $e) {
-                $this->log("Error: {$e->getMessage()}");
+                $this->log(sprintf("Error on batch %s – %s: %s", self::format($fromId), self::format($toId),
+                    $e->getMessage()));
             }
-            $this->log(sprintf('batch %s – %s out of %s', self::format($fromId), self::format($toId),
-                self::format(self::$maxId)));
+            if ($batchN % 100 === 0) {
+                $this->log(sprintf('batch %s out of %s', self::format($batchN), self::format($totalBatches)));
+            }
 
             // Prepare for a new batch.
             $params = ['body' => []];

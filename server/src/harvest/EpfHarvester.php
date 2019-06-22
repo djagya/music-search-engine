@@ -51,7 +51,7 @@ SELECT
     -- song
     s.song_id AS song_id,
     s.name AS song_name,
-    s.track_length AS song_duration,
+    floor(s.track_length / 1000) AS song_duration,
     sm.isrc AS song_isrc
 FROM
     song s
