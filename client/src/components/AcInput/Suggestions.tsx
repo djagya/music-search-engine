@@ -1,7 +1,7 @@
 import { SearchResponse, Suggestion } from '../../types';
 import styles from './Suggestions.module.scss';
 import React from 'react';
-import { formatTotal } from "../../utils";
+import { formatTotal } from '../../utils';
 
 interface SuggestionsProps {
   data: SearchResponse | null;
@@ -14,7 +14,7 @@ export default function Suggestions({ data, selected, onSelect, style }: Suggest
   if (!data) {
     return null;
   }
-  const { total, maxScore, suggestions } = data;
+  const { total, took, suggestions } = data;
 
   const listItems = (items: Suggestion[]) =>
     items.length ? (
@@ -25,11 +25,11 @@ export default function Suggestions({ data, selected, onSelect, style }: Suggest
 
   return (
     <div className={styles.Suggestions} style={style}>
-      <small>Aggregated unique values.</small>
-
       {suggestions.length > 0 && (
         <div>
-          <b>Total:</b> {formatTotal(total)}, <b>max score:</b> {maxScore}
+          <small>
+            <b>total</b> {formatTotal(total)}&nbsp;&nbsp;<b>took</b> {took}ms
+          </small>
         </div>
       )}
       <ul className={styles.list}>{listItems(suggestions)}</ul>

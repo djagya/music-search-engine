@@ -152,7 +152,7 @@ Accepted params:
 - `field` string, the field name to get autocomplete suggestions for
 - `query` string, the user query to search suggestions by
 - `selected` optional json-encoded string, list of other already chosen fields to limit the suggestions by. Format: `{fieldName: 'value', ...}`
-- `meta=1` optional bool, turn on to return the full Elastic Search response data. When turned off (`0`), only the list of formatted suggestions in format expected by the client app is returned.
+- `debug=1` optional bool, turn on to return the full Elastic Search response data. When turned off (`0`), only the list of formatted suggestions in format expected by the client app is returned.
 
 ##### `GET /related?empty=...&selected=...`
 Get a list of `empty` fields suggestions related to the `selected` fields values.
@@ -160,8 +160,8 @@ It is requested on an autocomplete suggestion selection that leads to the value 
 
 Accepted params:
 - `empty` string, the list of the empty fields to get suggestions for separated by `:`. Format: `fieldName1:fieldName2`
-- `selected` optional json-encoded string, list of other already chosen fields to limit the suggestions by. Format: `{fieldName: 'value', ...}`
-- `meta=1` optional bool, turn on to return the full Elastic Search response data. When turned off (`0`), only the list of formatted suggestions in format expected by the client app is returned.
+- `selected` required json-encoded string, list of other already chosen fields to limit the suggestions by. Format: `{fieldName: 'value', ...}`
+- `debug=1` optional bool, turn on to return the full Elastic Search response data. When turned off (`0`), only the list of formatted suggestions in format expected by the client app is returned.
 
 
 

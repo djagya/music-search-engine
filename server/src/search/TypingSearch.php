@@ -8,16 +8,15 @@ use InvalidArgumentException;
 class TypingSearch extends BaseSearch
 {
     protected $field;
-    protected $withMeta = true;
 
-    public function __construct(string $field, array $selected = [], bool $withMeta = true, string $index = null)
+    public function __construct(string $field, array $selected = [], bool $withDebug = true, string $index = null)
     {
         if (!in_array($field, self::AC_FIELDS)) {
             throw new InvalidArgumentException("Invalid field {$field}");
         }
         $this->field = $field;
 
-        parent::__construct([$field], $selected, $withMeta, $index);
+        parent::__construct([$field], $selected, $withDebug, $index);
     }
 
     /**
@@ -51,7 +50,7 @@ class TypingSearch extends BaseSearch
                     // support misspelling. AUTO:3:6. length < 3 - exact match, 3..5 - one edit allowed, >6 - two edits
                     // todo: fuziness can be slow for our data. then we'll need trigrams?
                     'fuzziness' => 'auto',
-                    'prefix_length' => 2,
+                    'prefix_length' => 3,
                     // todo: cover in bachelor difference in performance with prefix = 1 or 2 or 3. or no prefix
                 ],
             ],

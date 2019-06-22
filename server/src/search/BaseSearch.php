@@ -17,7 +17,7 @@ abstract class BaseSearch
     protected $emptyFields = [];
     /** @var array [field => value] map of already selected fields and their values */
     protected $selectedFields = [];
-    protected $withMeta = true;
+    protected $withDebug = true;
     /** @var string optional index name to force searching only within that index */
     protected $index;
     /** @var \Monolog\Logger */
@@ -27,14 +27,14 @@ abstract class BaseSearch
      * BaseSearch constructor.
      * @param string[] $emptyFields
      * @param array $selected [field => value]
-     * @param bool $withMeta
+     * @param bool $withDebug
      * @param string $index
      */
-    public function __construct(array $emptyFields, array $selected = [], bool $withMeta = true, string $index = null)
+    public function __construct(array $emptyFields, array $selected = [], bool $withDebug = true, string $index = null)
     {
         $this->emptyFields = array_filter($emptyFields);
         $this->selectedFields = $selected;
-        $this->withMeta = $withMeta;
+        $this->withDebug = $withDebug;
         $this->index = $index;
         $this->logger = Logger::get('search');
     }
@@ -68,12 +68,12 @@ abstract class BaseSearch
      */
     protected function formatResponse(array $result): array
     {
-        if ($this->withMeta) {
+        if ($this->withDebug) {
             return $result;
         }
 
         return [
-            'tookMs' => $result['took'],
+            'took' => $result['took'],
             'maxScore' => 0,
             //'total' => $result['hits']['total'],
             'total' => !empty($result['aggregations']['totalCount']['value'])

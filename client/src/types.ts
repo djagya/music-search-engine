@@ -1,6 +1,6 @@
 export interface SearchResponse {
   total: Total;
-  maxScore: number;
+  took: number;
   suggestions: Suggestion[];
 }
 
