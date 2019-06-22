@@ -110,62 +110,118 @@ class Indexes
     }
 
     /**
-     * There are few fields for different purposes.
+     * Return the mappings config for an index.
+     * All fields are specified explicitly and configured to reduce disk usage.
      *
-     * SEARCH RESULTS
-     * - the root `{column}` is a normalized and tokenized full-text searchable field.
-     *      Used to fetch autocomplete suggestions regardless of the terms case, character set, language.
-     *      Supports misspelled terms search.
-     *      Values are transformed to the unicode normalization form.
+     * When field.doc_values = true, it can be used in aggregations and sorting.
+     * When field.index = true, it becomes searchable and can be used in queries.
      *
-     * DISPLAY RESULTS
-     * - `{column}.raw` "keyword" field contains the exact original value.
-     *      Used as a display value as we want to preserve the original spelling, language.
-     *
-     * GROUP RESULTS AND FILTER RESULTS
-     * - `{column}.norm` "keyword" field contains a value in lowercase.
-     *      Used as a key for aggregation of the matched hits.
-     *      Allow to differentiate between differently spelled names, as they usually represent different
-     *      artists/songs/releases.
+     * Sub-fields "field.norm" are used for grouping and searching.
      */
     protected static function getMappings(string $index): array
     {
         $props = [
-            'label_name' => [
+            'song_duration' => [
+                'type' => 'short',
+                'index' => false,
+                'doc_values' => false,
+                // Convert strings to numbers, truncate fractions.
+                'coerce' => true,
+            ],
+            'song_isrc' => [
+                // ISRC can be searched and aggregated.
                 'type' => 'keyword',
-                'fields' => [
-                    'norm' => ['type' => 'keyword', 'normalizer' => 'caseInsensitive'],
-                ],
+                'index' => true,
+                'doc_values' => true,
             ],
             'release_genre' => [
+                // Genre name can be searched and aggregated by its normalized value.
                 'type' => 'keyword',
-                'fields' => [
-                    'norm' => ['type' => 'keyword', 'normalizer' => 'caseInsensitive'],
-                ],
+                'normalizer' => 'caseInsensitive',
+                'index' => true,
+                'doc_values' => true,
+            ],
+            'release_various_artists' => [
+                'type' => 'boolean',
+                'index' => false,
+                'doc_values' => false,
+            ],
+            'release_medium' => [
+                'type' => 'keyword',
+                'index' => false,
+                'doc_values' => false,
+            ],
+            'release_upc' => [
+                // UPC can be searched and aggregated.
+                'type' => 'keyword',
+                'index' => true,
+                'doc_values' => true,
+            ],
+            'cover_art_url' => [
+                'type' => 'keyword',
+                'index' => false,
+                'doc_values' => false,
             ],
             'release_year_released' => [
+                // Release year can be searched and aggregated.
                 'type' => 'short',
+                'index' => true,
+                'doc_values' => true,
                 'ignore_malformed' => true,
             ],
+            'label_name' => [
+                // Label name can be searched and aggregated by its normalized value.
+                'type' => 'keyword',
+                'normalizer' => 'caseInsensitive',
+                'index' => true,
+                'doc_values' => true,
+            ],
         ];
-        if ($index === self::SPINS_IDX) {
-            $props['spin_timestamp'] = [
-                'type' => 'date',
-                'format' => 'yyyy-MM-dd HH:mm:ss',
+
+        // Id fields don't need to be searched or aggregated.
+        $idType = ['type' => 'long', 'index' => false, 'doc_values' => false];
+        if ($index === self::EPF_IDX) {
+            $indexProps = [
+                'song_id' => $idType,
+                'artist_id' => $idType,
+                'collection_id' => $idType,
+            ];
+        } elseif ($index === self::SPINS_IDX) {
+            $indexProps = [
+                'id' => $idType,
+                'spin_timestamp' => [
+                    // Spin timestamp can be searched and aggregated.
+                    'type' => 'date',
+                    'format' => 'yyyy-MM-dd HH:mm:ss',
+                    'index' => true,
+                    'doc_values' => true,
+                ],
             ];
         }
+        $props = array_merge($props, $indexProps ?? []);
 
+        // Autocomplete props.
         foreach (BaseSearch::AC_FIELDS as $column) {
             $props[$column] = [
                 'type' => 'text',
                 'analyzer' => 'acAnalyzer',
                 'search_analyzer' => 'acQueryAnalyzer',
+                'index' => true,
+                'doc_values' => false,
                 'fields' => [
-                    'raw' => ['type' => 'keyword'],
-                    'norm' => ['type' => 'keyword', 'normalizer' => 'caseInsensitive'],
+                    // To group and filter by, ignores case, but preserves spelling.
+                    'norm' => [
+                        'type' => 'keyword',
+                        'normalizer' => 'caseInsensitive',
+                        'index' => true,
+                        'doc_values' => true,
+                        // Improve execution time for 'term' aggregations based on this field by preloading global ordinals - unique numbering for all terms.
+                        // It makes sense here, as .norm sub-field is used almost in every query to group results by.
+                        // https://www.elastic.co/guide/en/elasticsearch/reference/current/eager-global-ordinals.html
+                        'eager_global_ordinals' => true,
+                    ],
                     // To sort keywords in different languages and spellings app using DUCET collation.
-                    // Emits keys for efficient sorting.
-                    'sort' => ['type' => 'icu_collation_keyword', 'index' => false],
+                    'sort' => ['type' => 'icu_collation_keyword', 'index' => false, 'doc_values' => true],
                 ],
             ];
         }
