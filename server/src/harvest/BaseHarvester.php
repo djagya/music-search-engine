@@ -88,6 +88,7 @@ abstract class BaseHarvester
         $m = floor($totalTime / 60);
         $readableTime = ($m > 0 ? "{$m}m" : '') . round($totalTime % 60) . 's';
 
+        sleep(10);
         $stats = $client->indices()->stats(['index' => $index])['indices'][$index]['total'];
         $count = $stats['docs']['count'];
         $size = $stats['store']['size_in_bytes'] / 1024 / 1024;

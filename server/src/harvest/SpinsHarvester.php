@@ -46,16 +46,11 @@ class SpinsHarvester extends BaseHarvester
                 continue;
             }
 
-            $body[] = ['index' => ['_index' => static::INDEX_NAME]];
+            $body[] = ['index' => ['_index' => static::INDEX_NAME, '_id' => $row['id']]];
             $body[] = $this->mapRow($row);
         }
 
         return $body;
-    }
-
-    protected function generateId(): bool
-    {
-        return false;
     }
 
     protected function mapRow(array $row): array
@@ -65,6 +60,7 @@ class SpinsHarvester extends BaseHarvester
         }
 
         return array_map(function ($v) {
+            // Remove new-line characters from data so JSON batch request is valid.
             return is_string($v) ? str_replace(["\n", "\r"], ' ', $v) : $v;
         }, $row);
     }
