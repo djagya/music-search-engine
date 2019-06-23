@@ -127,6 +127,16 @@ abstract class BaseHarvester
             self::format(self::$maxId)));
         $this->log(sprintf('total batches: %s', self::format($totalBatches)));
 
+        $perfLog = false;
+        if ($this->forkN === 0) {
+            $path = __DIR__ . '/../../../logs/harvest/';
+            if (!is_dir($path)) {
+                mkdir($path);
+            }
+            $perfLog = fopen($path . date('YmdHis') . '.log', 'w+');
+            fputcsv($perfLog, ['timestamp', 'batchTime', 'transformTime', 'bulkTime']);
+        }
+
         $query = $this->getQuery();
         $params = [
             'index' => static::INDEX_NAME,
@@ -152,12 +162,17 @@ abstract class BaseHarvester
             }
 
             // Convert to ES query body.
+            $esBodyTime = microtime(true);
             $params['body'] = $this->getEsBatchBody($rows);
+            $esBodyTime = microtime(true) - $esBodyTime;
 
+            $bulkTime = null;
             try {
                 if (!empty($params['body'])) {
+                    $bulkTime = microtime(true);
                     // Send the BULK request to ES.
                     $client->bulk($params);
+                    $bulkTime = microtime(true) - $bulkTime;
                 }
             } catch (Throwable $e) {
                 $this->log(sprintf("Error on batch %s – %s: %s", self::format($fromId), self::format($toId),
@@ -166,6 +181,10 @@ abstract class BaseHarvester
             if ($batchN % 100 === 0) {
                 $this->log(sprintf('batch %s out of %s, took %f', self::format($batchN), self::format($totalBatches),
                     $batchTime));
+            }
+
+            if ($perfLog) {
+                fputcsv($perfLog, [time(), $batchTime, $esBodyTime, $bulkTime]);
             }
 
             // Prepare for a new batch.
