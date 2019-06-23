@@ -19,28 +19,16 @@ $searchModels = [
 ];
 $fields = array_keys($searchModels);
 
-$resLog = fopen(__DIR__ . '/../logs/perf_data.log', 'w+');
+$id = uniqid('', true);
+$resLog = fopen(__DIR__ . "/../logs/perf_data_$id.log", 'w+');
 
 $perfLog = fopen(__DIR__ . '/../data/perf.log', 'r');
 $count = 0;
 
-echo "Searching with $delay delay\n";
+echo "Searching with $delay delay, id $id\n";
 
 while (($line = fgets($perfLog)) !== false) {
     [$date, $time, $body] = explode(' ', $line, 3);
-
-    //$timestamp = strtotime("$date $time");
-    //if (!$lastTimestamp) {
-    //    $lastTimestamp = $timestamp;
-    //    $lastExecuted = time();
-    //}
-
-    //$origDelay = $timestamp - $lastTimestamp;
-    //$currentDelay = time() - $lastExecuted;
-    //// Wait the same amount of time as originally before sending the query.
-    //if ($origDelay >= $currentDelay) {
-    //    sleep($origDelay - $currentDelay);
-    //}
 
     $body = json_decode($body, true);
     $origTime = $body['t'];
@@ -66,8 +54,11 @@ while (($line = fgets($perfLog)) !== false) {
         echo sprintf("%s total: %d, last: took %d ms, count %d, query '%s' \n", date('Y-m-d H:i:s'), $count,
             $data['took'], $data['count'], $query);
     }
-    usleep($delay * 1000000);
+    if ($delay) {
+        usleep($delay * 1000000);
+    }
 }
-echo "Finished\n";
 fclose($perfLog);
 fclose($resLog);
+
+echo "Finished $id\n";
