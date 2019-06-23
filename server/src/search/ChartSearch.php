@@ -22,7 +22,6 @@ class ChartSearch
     protected $index;
     protected $logger;
     protected $es;
-    // todo: implement date range filter to allow to chart spins
     protected $dateFrom;
     protected $dateTo;
     protected $page;
@@ -48,7 +47,7 @@ class ChartSearch
         $this->index = !empty($params['index']) ? $params['index'] : null;
         $this->page = (int) $params['page'];
         $this->pageSize = (int) $params['pageSize'];
-        $this->direction = strpos($params['sort'] ?? '', '-') === 0 ? SORT_DESC : SORT_ASC;
+        $this->direction = strpos($params['sort'] ?? '', '-') === 0 ? 'desc' : 'asc';
         $this->sort = !empty($params['sort']) ? ltrim($params['sort'], '-') : null;
         $this->after = $params['after'] ?? null;
 
@@ -56,9 +55,10 @@ class ChartSearch
         if ($this->type === self::TYPE_SONGS) {
             $result = $this->searchSongs($query);
         } elseif ($this->type === self::TYPE_ARTISTS) {
-            $result = $this->searchArtists($query);
+            $result = $this->searchGroup($query, 'artist_name', ['label_name', 'release_genre']);
         } elseif ($this->type === self::TYPE_RELEASES) {
-            $result = $this->searchReleases($query);
+            $result = $this->searchGroup($query, 'release_title',
+                ['artist_name' => 'artist_name.norm', 'label_name', 'release_genre', 'release_year_released']);
         } else {
             throw new InvalidArgumentException("Invalid type {$this->type}");
         }
@@ -67,46 +67,71 @@ class ChartSearch
             'pagination' => [
                 'page' => $this->page,
                 'pageSize' => $this->pageSize,
+                'prev' => $this->after,
             ],
         ]);
     }
 
-    protected function searchSongs(array $query): array
+    protected function getSortField(string $default): string
     {
-        // todo: chart mode using the db to be able to group by on the whole dataset.
-        $sortField =
-            $this->index === 'spins' && $this->sort === 'spin_timestamp' ? 'spin_timestamp' : "{$this->sort}.sort";
-        if ($this->sort === 'release_year_released') {
-            $sortField = $this->sort;
-        }
         if (!$this->sort) {
-            $sortField = 'song_name.sort';
+            return $default;
+        }
+        if (($this->index === 'spins' && $this->sort === 'spin_timestamp') || $this->sort === 'release_year_released') {
+            return $this->sort;
         }
 
-        $params = [
+        return "{$this->sort}.sort";
+    }
+
+    /**
+     * @param array $query
+     * @param string $countField get total count of the set based on this field cardinality (# of unique values)
+     * @return array
+     */
+    protected function getParams(array $query, string $countableField): array
+    {
+        return [
             'index' => $this->getIndexName(),
-            'size' => $this->pageSize,
-            'from' => $this->page * $this->pageSize,
             'body' => [
                 'query' => $this->getQuery($query),
-                'sort' => [$sortField => $this->direction === SORT_DESC ? 'desc' : 'asc'],
                 'aggs' => [
                     'totalCount' => [
-                        'cardinality' => ['field' => '_id'],
+                        'cardinality' => ['field' => $countableField],
                     ],
                 ],
             ],
         ];
+    }
+
+    /**
+     * "Songs" grid type. Represents unique rows in the database.
+     *
+     * One of the things that can be improved here is the chart mode.
+     * To implement correct chart mode the integration with the data source DB is required.
+     */
+    protected function searchSongs(array $query): array
+    {
+        $sortField = $this->getSortField('song_name.sort');
+        $params = array_merge_recursive($this->getParams($query, '_id'), [
+            'size' => $this->pageSize,
+            'from' => $this->page * $this->pageSize,
+            'body' => [
+                'sort' => [$sortField => $this->direction],
+            ],
+        ]);
 
         $this->logParams("Chart [{$this->type}] params", $params);
         $result = $this->es->search($params);
         $this->logger->info("Chart [{$this->type}] took {$result['took']}ms");
 
         $result['query'] = $params['body'];
-
         if ($this->debug) {
             return array_merge(['query' => $params], $result);
         }
+
+        $sort = implode('',
+            [$this->direction === 'desc' ? '-' : '', str_replace('.sort', '', $sortField)]);
 
         return [
             'took' => $result['took'],
@@ -115,238 +140,119 @@ class ChartSearch
                 return array_merge(['_id' => $hit['_id']], $hit['_source']);
             }, $result['hits']['hits']),
             'pagination' => [
-                'sort' => implode('',
-                    [$this->direction === SORT_DESC ? '-' : '', str_replace('.sort', '', $sortField)]),
+                'sort' => $sort,
             ],
         ];
     }
 
-    protected function searchArtists(array $query): array
+    /**
+     * Select a dataset grouped by the specified attribute (only fields with a sub-field .norm are allowed).
+     * Collect distinct values of specified fields within each group (similar to GROUP_CONCAT in SQL).
+     * @param array $query
+     * @param string $groupBy a field with a '.norm' subfield
+     * @param array $collect list of field names to collect within each group. Also supported [destField => sourceField]
+     * @return array result
+     */
+    protected function searchGroup(array $query, string $groupBy, array $collect): array
     {
-        $field = 'artist_name';
+        $params = $this->getGroupedGridQuery($groupBy, $query, $collect);
 
+        $this->logParams("Chart [{$this->type}] params", $params);
+        $result = $this->es->search($params);
+        $this->logger->info("Chart [{$this->type}] took {$result['took']}ms");
+
+        $namesAgg = $result['aggregations']['names'];
+        // If pagination loads previous pages, take only last, current page.
+        $buckets = $this->sort === 'count' ? array_slice($namesAgg['buckets'], -$this->pageSize) : $namesAgg['buckets'];
+
+        // Prepare to be consumed by the chart web-app.
+        $rows = array_map(function (array $item) use ($collect) {
+            $hit = $item['topHits']['hits']['hits'][0];
+
+            $collected = [];
+            foreach ($collect as $k => $f) {
+                if (is_int($k)) {
+                    $k = $f;
+                }
+                $collected[$k] = array_map('ucwords', array_column($item[$f]['buckets'], 'key'));
+            }
+
+            // Take some document meta information, source, and collected groups of distinct values.
+            return array_merge(
+                ['_id' => $hit['_id'], 'count' => $item['doc_count']],
+                $hit['_source'],
+                $collected
+            );
+        }, $buckets);
+
+        if ($this->debug) {
+            return array_merge(['query' => $params], $result);
+        }
+
+        $sort = implode('', [$this->direction === 'desc' ? '-' : '', $this->sort ?: $groupBy]);
+
+        return [
+            'took' => $result['took'],
+            'total' => ['value' => $result['aggregations']['totalCount']['value'], 'relation' => ''],
+            'pagination' => [
+                'after' => $namesAgg['after_key'][$groupBy] ?? null,
+                'sort' => $sort,
+            ],
+            'rows' => $rows,
+        ];
+    }
+
+    /**
+     * Return a grouping aggregation that will select distinct $field values in two possible ways:
+     * 1) Select top N groups, can be paginated but requires to load all previous pages. Used with "count" order.
+     * 2) Select composite buckets, can be paginated using an "after" cursor, memory-efficient.
+     */
+    protected function getGroupAggregation(string $field): array
+    {
         if ($this->sort === 'count') {
-            // Take top artists, size is big to fetch the current page of data, no way to paginate.
-            $groupAgg = [
+            // Take top grouped results, can be paginated only by loading all previous results, so pagination should be limited.
+            return [
                 'terms' => [
                     'size' => $this->pageSize + $this->pageSize * $this->page,
                     'field' => "$field.norm",
-                    'order' => ['_count' => $this->direction === SORT_ASC ? 'asc' : 'desc'],
+                    'order' => ['_count' => $this->direction],
                 ],
             ];
-        } else {
-            $groupAgg = [
-                'composite' => [
-                    'size' => $this->pageSize,
-                    'sources' => [
-                        [
-                            'artist' => [
-                                'terms' => [
-                                    'field' => "$field.norm",
-                                    'order' => $this->direction === SORT_DESC ? 'desc' : 'asc',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ];
-            if ($this->after) {
-                $groupAgg['composite']['after'] = ['artist' => $this->after];
-            }
         }
 
-        // By default sorted by count.
-        $params = [
-            'index' => $this->getIndexName(),
+        // Composite grouping allows to paginate the whole dataset, with usage of "after" cursor.
+        return [
+            'composite' => array_filter([
+                'size' => $this->pageSize,
+                'sources' => [
+                    [$field => ['terms' => ['field' => "$field.norm", 'order' => $this->direction]]],
+                ],
+                'after' => $this->after ? [$field => $this->after] : null,
+            ]),
+        ];
+    }
+
+    protected function getGroupedGridQuery(string $field, array $query, array $collect): array
+    {
+        $collectAggs = [];
+        foreach ($collect as $f) {
+            // Select distinct names of a group.
+            $collectAggs[$f] = ['terms' => ['size' => 1000, 'field' => $f]];
+        }
+
+        return array_merge_recursive($this->getParams($query, "$field.norm"), [
             'body' => [
-                'query' => $this->getQuery($query),
                 'aggs' => [
-                    'names' => array_merge($groupAgg, [
-                        'aggs' => [
+                    'names' => array_merge($this->getGroupAggregation($field), [
+                        'aggs' => array_merge([
                             // Return the top document to get a display value from its field.
-                            'topHits' => [
-                                'top_hits' => [
-                                    'size' => 1,
-                                ],
-                            ],
-                            'labels' => [
-                                'terms' => [
-                                    'size' => 1000,
-                                    'field' => 'label_name',
-                                ],
-                            ],
-                            'genres' => [
-                                'terms' => [
-                                    'size' => 1000,
-                                    'field' => 'release_genre',
-                                ],
-                            ],
-                        ],
+                            'topHits' => ['top_hits' => ['size' => 1]],
+                        ], $collectAggs),
                     ]),
-                    'totalCount' => [
-                        'cardinality' => ['field' => "$field.norm"],
-                    ],
                 ],
                 'size' => 0, // don't return search hits, because we work with aggregated buckets only
             ],
-        ];
-
-        $this->logParams("Chart [{$this->type}] params", $params);
-        $result = $this->es->search($params);
-        $this->logger->info("Chart [{$this->type}] took {$result['took']}ms");
-
-        $namesAgg = $result['aggregations']['names'];
-        $buckets = $this->sort === 'count' ? array_slice($namesAgg['buckets'], -$this->pageSize) : $namesAgg['buckets'];
-        $rows = array_map(function (array $item) {
-            $hit = $item['topHits']['hits']['hits'][0];
-
-            return array_merge([
-                '_id' => $hit['_id'],
-                'count' => $item['doc_count'],
-            ], $hit['_source'], [
-                // todo: for now skip getting real value using top_hits and just format normalized value as Label Name
-                'label_name' => array_map('ucwords', array_column($item['labels']['buckets'], 'key')),
-                'release_genre' => array_map('ucwords', array_column($item['genres']['buckets'], 'key')),
-            ]);
-        }, $buckets);
-
-        if ($this->debug) {
-            return array_merge(['query' => $params], $result);
-        }
-
-        return [
-            'took' => $result['took'],
-            'total' => ['value' => $result['aggregations']['totalCount']['value'], 'relation' => ''],
-            'pagination' => [
-                // Needed when not sorted by doc_count.
-                'after' => $namesAgg['after_key']['artist'] ?? null,
-                'prev' => $this->after,
-                'sort' => implode('',
-                    [$this->direction === SORT_DESC ? '-' : '', $this->sort ?: $field]),
-            ],
-            'rows' => $rows,
-        ];
-    }
-
-    protected function searchReleases(array $query): array
-    {
-        $field = 'release_title';
-
-        if ($this->sort === 'count') {
-            // Take top artists, size is big to fetch the current page of data, no way to paginate.
-            $groupAgg = [
-                'terms' => [
-                    'size' => $this->pageSize + $this->pageSize * $this->page,
-                    'field' => "$field.norm",
-                    'order' => ['_count' => $this->direction === SORT_ASC ? 'asc' : 'desc'],
-                ],
-            ];
-        } else {
-            $groupAgg = [
-                'composite' => [
-                    'size' => $this->pageSize,
-                    'sources' => [
-                        [
-                            'release' => [
-                                'terms' => [
-                                    'field' => "$field.norm",
-                                    'order' => $this->direction === SORT_DESC ? 'desc' : 'asc',
-                                ],
-                            ],
-                        ],
-                    ],
-                ],
-            ];
-            if ($this->after) {
-                $groupAgg['composite']['after'] = ['release' => $this->after];
-            }
-        }
-
-        // By default sorted by count.
-        $params = [
-            'index' => $this->getIndexName(),
-            'body' => [
-                'query' => $this->getQuery($query),
-                'aggs' => [
-                    'names' => array_merge($groupAgg, [
-                        'aggs' => [
-                            // Return the top document to get a display value from its field.
-                            'topHits' => [
-                                'top_hits' => [
-                                    'size' => 1,
-                                ],
-                            ],
-                            'artists' => [
-                                'terms' => [
-                                    'size' => 1000,
-                                    'field' => 'artist_name.norm',
-                                ],
-                            ],
-                            'labels' => [
-                                'terms' => [
-                                    'size' => 1000,
-                                    'field' => 'label_name',
-                                ],
-                            ],
-                            'genres' => [
-                                'terms' => [
-                                    'size' => 1000,
-                                    'field' => 'release_genre',
-                                ],
-                            ],
-                            'released' => [
-                                'terms' => [
-                                    'size' => 1000,
-                                    'field' => 'release_year_released',
-                                ],
-                            ],
-                        ],
-                    ]),
-                    'totalCount' => [
-                        'cardinality' => ['field' => "$field.norm"],
-                    ],
-                ],
-                'size' => 0,
-            ],
-        ];
-
-        $this->logParams("Chart [{$this->type}] params", $params);
-        $result = $this->es->search($params);
-        $this->logger->info("Chart [{$this->type}] took {$result['took']}ms");
-
-        $namesAgg = $result['aggregations']['names'];
-        $buckets = $this->sort === 'count' ? array_slice($namesAgg['buckets'], -$this->pageSize) : $namesAgg['buckets'];
-        $rows = array_map(function (array $item) {
-            $hit = $item['topHits']['hits']['hits'][0];
-
-            return array_merge([
-                '_id' => $hit['_id'],
-                'count' => $item['doc_count'],
-            ], $hit['_source'], [
-                // todo: for now skip getting real value using top_hits and just format normalized value as Label Name
-                'artist_name' => array_map('ucwords', array_column($item['artists']['buckets'], 'key')),
-                'label_name' => array_map('ucwords', array_column($item['labels']['buckets'], 'key')),
-                'release_genre' => array_map('ucwords', array_column($item['genres']['buckets'], 'key')),
-                'release_year_released' => array_column($item['released']['buckets'], 'key'),
-            ]);
-        }, $buckets);
-
-        if ($this->debug) {
-            return array_merge(['query' => $params], $result);
-        }
-
-        return [
-            'took' => $result['took'],
-            'total' => ['value' => $result['aggregations']['totalCount']['value'], 'relation' => ''],
-            'pagination' => [
-                // Needed when not sorted by doc_count.
-                'after' => $namesAgg['after_key']['release'] ?? null,
-                'prev' => $this->after,
-                'sort' => implode('',
-                    [$this->direction === SORT_DESC ? '-' : '', $this->sort ?: $field]),
-            ],
-            'rows' => $rows,
-        ];
+        ]);
     }
 
     protected function getQuery(array $query): array
