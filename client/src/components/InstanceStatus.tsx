@@ -7,8 +7,7 @@ export default function InstanceStatus({ onChange }: { onChange: { (v: boolean):
   const [isRunning, setStatus] = useState<boolean>(false);
   const [isLoading, setLoading] = useState<boolean>(false);
 
-  useEffect(() => {
-    setLoading(true);
+  function getStatus() {
     axios
       .get('/api/instance')
       .then(res => {
@@ -19,6 +18,11 @@ export default function InstanceStatus({ onChange }: { onChange: { (v: boolean):
         console.log(e);
         setLoading(false);
       });
+  }
+
+  useEffect(() => {
+    setLoading(true);
+    getStatus();
   }, []);
 
   useEffect(() => {
@@ -30,8 +34,12 @@ export default function InstanceStatus({ onChange }: { onChange: { (v: boolean):
     axios
       .post('/api/instance', { start: !isRunning })
       .then(res => {
-        setStatus(res.data.running === true);
-        setLoading(false);
+        // Hacky way to avoid dealing with AWS api responses.
+        setStatus(!isRunning);
+        setLoading(true);
+        setTimeout(() => {
+          getStatus();
+        }, 5000);
       })
       .catch(e => {
         console.log(e);
