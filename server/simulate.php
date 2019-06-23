@@ -4,37 +4,71 @@ use app\search\TypingSearch;
 
 require 'vendor/autoload.php';
 
-$started = time();
-//echo date('Y-m-d H:i:s');
-$lastExecuted = null;
-$lastTimestamp = null;
+$forks = min($argv[1] ?? 1, 20);
+$delay = max($argv[2] ?? 0, 0);
+$feedFile = realpath(__DIR__ . '/../data/perf.log');
 
-//$delay = 0.1;
-$delay = 0; // to check the throughput
+$path = __DIR__ . '/../logs/perf';
+$logsDir = realpath($path);
+
+if (($argv[1] ?? '') === 'help') {
+    echo "Usage:\n\n";
+    echo "php server/simulate.php [forks] [delay]\n\n";
+    echo "Where\n";
+    echo "[forks] determines the max number of simultaneous search requests. Default: 1\n";
+    echo "[delay] specifies a base delay (further randomized) between queries. Default: 0\n";
+    exit();
+}
+// Create result logs dir.
+if (!$logsDir) {
+    echo "Creating \t $path\n";
+    mkdir($path);
+    $logsDir = realpath($path);
+}
+
+$id = uniqid();
+
+echo "Running forks=$forks delay=$delay id=$id\n";
+echo "Source file \t $feedFile\n";
+echo "Logs dir \t $logsDir\n";
+
+// Load the whole dump to randomize it for each fork.
+$lines = explode("\n", file_get_contents($feedFile));
+echo count($lines) . " queries to run\n";
 
 $searchModels = [
     'artist_name' => new TypingSearch('artist_name', [], false),
     'release_title' => new TypingSearch('release_title', [], false),
     'song_name' => new TypingSearch('artist_name', [], false),
 ];
-$fields = array_keys($searchModels);
 
-$id = uniqid('', true);
-$resLog = fopen(__DIR__ . "/../logs/simulation_$id.log", 'w+');
+// Spawn forks if needed.
+$forkId = '_0';
+if ($forks > 1) {
+    $pids = [];
+    for ($i = 0; $i < $forks - 1; $i++) {
+        $pids[] = pcntl_fork();
+        if (!$pids[$i]) {
+            $forkId = "_$i";
+            break;
+        }
+    }
+}
+$id .= $forkId;
 
-$perfLog = fopen(__DIR__ . '/../data/perf.log', 'r');
+// Randomize lines.
+shuffle($lines);
+
+$resLog = fopen("$logsDir/$id.log", 'w+');
 $count = 0;
-
-echo "Searching with $delay delay, id $id\n";
-
-while (($line = fgets($perfLog)) !== false) {
+while ($line = array_pop($lines)) {
     [$date, $time, $body] = explode(' ', $line, 3);
 
     $body = json_decode($body, true);
     $origTime = $body['t'];
     $query = $body['q'];
 
-    $field = array_rand($fields);
+    $field = array_rand($searchModels);
     $result = $searchModels[$field]->search($query);
 
     $data = [
@@ -47,18 +81,16 @@ while (($line = fgets($perfLog)) !== false) {
     ];
     fputcsv($resLog, $data);
 
-    $lastExecuted = time();
     $count += 1;
 
-    if ($count % 100 === 0) {
-        echo sprintf("%s total: %d, last: took %d ms, count %d, query '%s' \n", date('Y-m-d H:i:s'), $count,
-            $data['took'], $data['count'], $query);
+    if ($count % 1000 === 0) {
+        echo sprintf("%s %s %d\tlast %dms\t %d\t'%s'\n", date('Y-m-d H:i:s'), $id, $count,
+            $data['took'], $data['count'], substr($query, 0, 10));
     }
     if ($delay) {
         usleep($delay * 1000000);
     }
 }
-fclose($perfLog);
 fclose($resLog);
 
 echo "Finished $id\n";
