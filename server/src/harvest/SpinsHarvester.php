@@ -16,7 +16,6 @@ use PDO;
 class SpinsHarvester extends BaseHarvester
 {
     const INDEX_NAME = Indexes::SPINS_IDX;
-    const BATCH_SIZE = 100;
 
     protected static function before(): void
     {
@@ -34,6 +33,11 @@ class SpinsHarvester extends BaseHarvester
     protected function getQuery(): string
     {
         return 'select * from spins_dump where id BETWEEN ? AND ?';
+    }
+
+    protected function getBatchSize(): int
+    {
+        return 100;
     }
 
     protected function getEsBatchBody(array $batch): array

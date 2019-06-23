@@ -11,7 +11,6 @@ abstract class BaseHarvester
 {
     const INDEX_NAME = '';
 
-    const BATCH_SIZE = 5000;
     const DEV_LIMIT = 1000000;
 
     protected static $minId;
@@ -109,6 +108,8 @@ abstract class BaseHarvester
         $this->totalForks = $totalForks;
     }
 
+    protected abstract function getBatchSize(): int;
+
     /**
      * Start the harvest process.
      * todo: maybe sequential access is faster for the DB to process?
@@ -118,9 +119,10 @@ abstract class BaseHarvester
         $client = EsClient::build();
         $pdo = static::getDb();
 
-        $fromId = self::$minId + self::BATCH_SIZE * $this->forkN; // forkN 0 - from id 0
-        $toId = $fromId + self::BATCH_SIZE;
-        $step = self::BATCH_SIZE * $this->totalForks;
+        $batchSize = $this->getBatchSize();
+        $fromId = self::$minId + $batchSize * $this->forkN; // forkN 0 - from id 0
+        $toId = $fromId + $batchSize;
+        $step = $batchSize * $this->totalForks;
         $totalBatches = (int) ceil((self::$maxId - $fromId) / $step);
 
         $this->log(sprintf('started from ID %s to ID %s, max song id %s', self::format($fromId), self::format($toId),
@@ -133,7 +135,7 @@ abstract class BaseHarvester
             if (!is_dir($path)) {
                 mkdir($path);
             }
-            $perfLog = fopen($path . date('YmdHis') . '_' . self::BATCH_SIZE . '.log', 'w+');
+            $perfLog = fopen($path . date('YmdHis') . '_' . $batchSize . '.log', 'w+');
             fputcsv($perfLog, ['timestamp', 'batchTime', 'transformTime', 'bulkTime']);
         }
 
