@@ -20,7 +20,7 @@ $searchModels = [
 $fields = array_keys($searchModels);
 
 $id = uniqid('', true);
-$resLog = fopen(__DIR__ . "/../logs/perf_data_$id.log", 'w+');
+$resLog = fopen(__DIR__ . "/../logs/simulation_$id.log", 'w+');
 
 $perfLog = fopen(__DIR__ . '/../data/perf.log', 'r');
 $count = 0;
