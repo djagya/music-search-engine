@@ -21,7 +21,7 @@ if (($argv[1] ?? '') === 'help') {
 }
 // Create result logs dir.
 if (!$logsDir) {
-    echo "Creating \t $path\n";
+    echo "Creating \t $path\n\n";
     mkdir($path);
     $logsDir = realpath($path);
 }
@@ -30,11 +30,11 @@ $id = uniqid();
 
 echo "Running forks=$forks delay=$delay id=$id\n";
 echo "Source file \t $feedFile\n";
-echo "Logs dir \t $logsDir\n";
+echo "Logs dir \t $logsDir\n\n";
 
 // Load the whole dump to randomize it for each fork.
 $lines = explode("\n", file_get_contents($feedFile));
-echo count($lines) . " queries to run\n";
+echo sprintf("Total queries \t %d \n", count($lines));
 
 $searchModels = [
     'artist_name' => new TypingSearch('artist_name', [], false),
@@ -46,8 +46,8 @@ $searchModels = [
 $forkId = '_0';
 if ($forks > 1) {
     $pids = [];
-    for ($i = 0; $i < $forks - 1; $i++) {
-        $pids[] = pcntl_fork();
+    for ($i = 1; $i < $forks; $i++) {
+        $pids[$i] = pcntl_fork();
         if (!$pids[$i]) {
             $forkId = "_$i";
             break;
