@@ -35,9 +35,12 @@ class SpinsHarvester extends BaseHarvester
         return 'select * from spins_dump where id BETWEEN ? AND ?';
     }
 
+    /**
+     * After multiple tests 7500 appeared as near optimal to increase the index speed.
+     */
     protected function getBatchSize(): int
     {
-        return 20000;
+        return 7500;
     }
 
     protected function getEsBatchBody(array $batch): array

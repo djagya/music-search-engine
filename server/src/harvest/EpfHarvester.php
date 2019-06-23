@@ -75,6 +75,10 @@ WHERE
 SQL;
     }
 
+    /**
+     * 20000 shows the good results and faster index speed.
+     * @return int
+     */
     protected function getBatchSize(): int
     {
         return 20000;
