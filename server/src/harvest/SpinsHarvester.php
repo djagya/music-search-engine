@@ -37,7 +37,7 @@ class SpinsHarvester extends BaseHarvester
 
     protected function getBatchSize(): int
     {
-        return 100;
+        return 200;
     }
 
     protected function getEsBatchBody(array $batch): array
