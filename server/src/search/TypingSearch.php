@@ -103,9 +103,15 @@ class TypingSearch extends BaseSearch
             ],
         ];
 
-        $this->logParams("Typing [$query] body", $params);
-        $result = EsClient::build(true)->search($params);
-        $this->logger->info("Typing [$query] took {$result['took']}ms");
+        $silent = getenv('SILENT') === 1;
+
+        if (!$silent) {
+            $this->logParams("Typing [$query] body", $params);
+            $result = EsClient::build(true)->search($params);
+            $this->logger->info("Typing [$query] took {$result['took']}ms");
+        } else {
+            $result = EsClient::build()->search($params);
+        }
 
         return $this->formatResponse($result);
     }
