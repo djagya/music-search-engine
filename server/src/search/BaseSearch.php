@@ -2,6 +2,7 @@
 
 namespace app\search;
 
+use app\EsClient;
 use app\Indexes;
 use app\Logger;
 
@@ -22,6 +23,7 @@ abstract class BaseSearch
     protected $index;
     /** @var \Monolog\Logger */
     protected $logger;
+    protected $client;
 
     /**
      * BaseSearch constructor.
@@ -37,6 +39,7 @@ abstract class BaseSearch
         $this->withDebug = $withDebug;
         $this->index = $index;
         $this->logger = Logger::get('search');
+        $this->client = EsClient::build(true);
     }
 
     abstract public function search(string $query): array;

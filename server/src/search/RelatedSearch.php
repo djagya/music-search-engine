@@ -2,8 +2,6 @@
 
 namespace app\search;
 
-use app\EsClient;
-
 class RelatedSearch extends BaseSearch
 {
     public function search(string $query = null): array
@@ -67,7 +65,7 @@ class RelatedSearch extends BaseSearch
 
         // todo: concurrent queries
         $this->logParams("Related [$field] body", $params);
-        $result = EsClient::build(true)->search($params);
+        $result = $this->client->search($params);
         $this->logger->info("Related [$field] took {$result['took']}ms");
 
         return $result;
@@ -75,8 +73,7 @@ class RelatedSearch extends BaseSearch
 
     protected function getMatchedData(): array
     {
-        // todo: for now take the first. ideally show e.g. 3 suggested variants;
-        $data = EsClient::build()->search([
+        $data = $this->client->search([
             'index' => $this->getIndexName(),
             'body' => [
                 'query' => [
@@ -88,6 +85,7 @@ class RelatedSearch extends BaseSearch
                 'sort' => [
                     ['_id' => 'desc'],
                 ],
+                'size' => 50,
             ],
         ]);
 
