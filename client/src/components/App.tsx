@@ -5,8 +5,8 @@ import SearchView from '../pages/SearchPage/SearchPage';
 import ChartView from '../pages/ChartPage/ChartPage';
 import { Heading } from './UI';
 
-const DEFAULT_ROUTE = '/chart';
-// const DEFAULT_ROUTE = '/search';
+// const DEFAULT_ROUTE = '/chart';
+const DEFAULT_ROUTE = '/search';
 
 const TITLES: { [route: string]: string } = {
   '/chart': 'Chart',
