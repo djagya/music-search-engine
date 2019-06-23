@@ -77,7 +77,7 @@ SQL;
 
     protected function getBatchSize(): int
     {
-        return 3000;
+        return 7000;
     }
 
     protected function getEsBatchBody(array $batch): array
