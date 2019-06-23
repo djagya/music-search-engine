@@ -33,7 +33,7 @@ const initPagination = { page: 0, pageSize: PAGE_SIZE, after: null, prev: null }
  *
  */
 export default function ChartPage() {
-  const [gridType, setGridType] = useState(TYPE_ARTISTS);
+  const [gridType, setGridType] = useState(TYPE_SONGS);
   const [index, setIndex] = useState<string>('spins');
   const [chartMode, setChartMode] = useState<boolean>(false);
   const [response, setResponse] = useState<ChartResponse | null>(null);

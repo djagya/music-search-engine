@@ -33,13 +33,10 @@ export default function AcInput(props: AcInputProps) {
 
   // Deactivate on click outside.
   useEffect(() => {
-    if (!ref.current) {
-      return;
-    }
     const close = (e: any) => (ref.current && !ref.current.contains(e.target) ? setActive(false) : null);
     document.addEventListener('click', close);
     return () => document.removeEventListener('click', close);
-  }, [ref.current]);
+  }, []);
 
   // Display if current input is active and there's typing response or if there's a related response.
   const showSuggestions = Boolean(isActive && response);
