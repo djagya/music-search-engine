@@ -12,7 +12,12 @@ $lastTimestamp = null;
 //$delay = 0.1;
 $delay = 0; // to check the throughput
 
-$searchModel = new TypingSearch('artist_name', [], false);
+$searchModels = [
+    'artist_name' => new TypingSearch('artist_name', [], false),
+    'release_title' => new TypingSearch('release_title', [], false),
+    'song_name' => new TypingSearch('artist_name', [], false),
+];
+$fields = array_keys($searchModels);
 
 $resLog = fopen(__DIR__ . '/../logs/perf_data.log', 'w+');
 
@@ -41,7 +46,8 @@ while (($line = fgets($perfLog)) !== false) {
     $origTime = $body['t'];
     $query = $body['q'];
 
-    $result = $searchModel->search($query);
+    $field = array_rand($fields);
+    $result = $searchModels[$field]->search($query);
 
     $data = [
         'datetime' => date('Y-m-d H:i:s'),
@@ -49,6 +55,7 @@ while (($line = fgets($perfLog)) !== false) {
         'count' => $result['total']['value'],
         'origTook' => $origTime,
         'origCount' => $body['n'],
+        'field' => $field,
     ];
     fputcsv($resLog, $data);
 
