@@ -135,7 +135,7 @@ abstract class BaseHarvester
             if (!is_dir($path)) {
                 mkdir($path);
             }
-            $perfLog = fopen($path . date('YmdHis') . '_' . $batchSize . '.log', 'w+');
+            $perfLog = fopen($path . date('YmdHis') . '_' . $batchSize . '.' . static::INDEX_NAME . '.log', 'w+');
             fputcsv($perfLog, ['timestamp', 'batchTime', 'transformTime', 'bulkTime']);
         }
 
