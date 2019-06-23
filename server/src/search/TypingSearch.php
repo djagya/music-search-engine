@@ -85,7 +85,7 @@ class TypingSearch extends BaseSearch
                         'aggs' => [
                             // Aggregate the bucket max score for sorting.
                             'maxScore' => ['max' => ['script' => ['source' => '_score']]],
-                            // Return the top document to get a display value from its '.raw' field.
+                            // Return the top document to get a display value.
                             'topHits' => [
                                 'top_hits' => [
                                     'size' => 1,

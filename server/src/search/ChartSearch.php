@@ -15,7 +15,7 @@ class ChartSearch
 
     protected $type = self::TYPE_SONGS;
     protected $chartMode = false;
-    protected $meta = false;
+    protected $debug = false;
     protected $sort = null;
     protected $direction = null;
     protected $index;
@@ -28,11 +28,11 @@ class ChartSearch
     protected $after;
     protected $pageSize;
 
-    public function __construct(string $type, bool $chartMode, bool $meta = false)
+    public function __construct(string $type, bool $chartMode, bool $debug = false)
     {
         $this->type = $type;
         $this->chartMode = $chartMode;
-        $this->meta = $meta;
+        $this->debug = $debug;
         $this->logger = Logger::get('search');
         $this->es = EsClient::build(true);
     }
@@ -95,7 +95,7 @@ class ChartSearch
 
         $result['query'] = $params['body'];
 
-        if ($this->meta) {
+        if ($this->debug) {
             return array_merge(['query' => $params], $result);
         }
 
@@ -154,7 +154,7 @@ class ChartSearch
                 'aggs' => [
                     'names' => array_merge($groupAgg, [
                         'aggs' => [
-                            // Return the top document to get a display value from its '.raw' field.
+                            // Return the top document to get a display value from its field.
                             'topHits' => [
                                 'top_hits' => [
                                     'size' => 1,
@@ -163,13 +163,13 @@ class ChartSearch
                             'labels' => [
                                 'terms' => [
                                     'size' => 1000,
-                                    'field' => 'label_name.norm',
+                                    'field' => 'label_name',
                                 ],
                             ],
                             'genres' => [
                                 'terms' => [
                                     'size' => 1000,
-                                    'field' => 'release_genre.norm',
+                                    'field' => 'release_genre',
                                 ],
                             ],
                         ],
@@ -201,7 +201,7 @@ class ChartSearch
             ]);
         }, $buckets);
 
-        if ($this->meta) {
+        if ($this->debug) {
             return array_merge(['query' => $params], $result);
         }
 
@@ -253,7 +253,7 @@ class ChartSearch
                 'aggs' => [
                     'names' => array_merge($groupAgg, [
                         'aggs' => [
-                            // Return the top document to get a display value from its '.raw' field.
+                            // Return the top document to get a display value from its field.
                             'topHits' => [
                                 'top_hits' => [
                                     'size' => 1,
@@ -268,13 +268,13 @@ class ChartSearch
                             'labels' => [
                                 'terms' => [
                                     'size' => 1000,
-                                    'field' => 'label_name.norm',
+                                    'field' => 'label_name',
                                 ],
                             ],
                             'genres' => [
                                 'terms' => [
                                     'size' => 1000,
-                                    'field' => 'release_genre.norm',
+                                    'field' => 'release_genre',
                                 ],
                             ],
                             'released' => [
@@ -314,7 +314,7 @@ class ChartSearch
             ]);
         }, $buckets);
 
-        if ($this->meta) {
+        if ($this->debug) {
             return array_merge(['query' => $params], $result);
         }
 

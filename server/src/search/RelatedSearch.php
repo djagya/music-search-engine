@@ -8,60 +8,15 @@ class RelatedSearch extends BaseSearch
 {
     public function search(string $query = null): array
     {
-        if (!$this->emptyFields) {
-            return ['fields' => [], 'data' => $this->getMatchedData()];
-        }
-
-        // todo: for now try to do one request per field. then it's easier to sort
         $fieldResponses = [];
         foreach ($this->emptyFields as $emptyField) {
-            $aggs = [
-                'groupByName' => [
-                    'terms' => [
-                        'field' => "$emptyField.norm",
-                        // Sorting by docs count is better as frequent values are more likely to be searched for.
-                        'order' => ["_count" => 'desc'],
-                        // 'size' => 100, // amount of unique suggestions to return
-                    ],
-                    'aggs' => [
-                        // Return the top document to get a display value from its '.raw' field.
-                        'topHits' => [
-                            'top_hits' => [
-                                'size' => 1,
-                            ],
-                        ],
-                    ],
-                    'totalCount' => [
-                        'cardinality' => ['field' => "$emptyField.norm"],
-                    ],
-                ],
-            ];
-
-            $params = [
-                'index' => $this->getIndexName(),
-                'body' => [
-                    'query' => [
-                        'constant_score' => [
-                            'filter' => $this->getSelectedFieldsFilter(),
-                        ],
-                    ],
-                    'aggs' => $aggs,
-                    'size' => 0, // ignore hits
-                ],
-            ];
-
-            // todo: concurrent queries
-            $this->logParams("Related [$emptyField] body", $params);
-            $result = EsClient::build(true)->search($params);
-            $this->logger->info("Related [$emptyField] took {$result['took']}ms");
-
+            $result = $this->getFieldSuggestions($emptyField);
             // Pass the current searched field so formatSuggestions know what value to take for a suggestion.
             $result['field'] = $emptyField;
             $fieldResponses[$emptyField] = $this->formatResponse($result);
         }
 
-        // todo: figure out how to provide data we were able to get when few selected values matched
-        return ['fields' => $fieldResponses, 'data' => ''];
+        return ['fields' => $fieldResponses, 'data' => count($this->selectedFields) > 1 ? $this->getMatchedData() : []];
     }
 
     protected function formatSuggestions(array $data): array
@@ -85,6 +40,39 @@ class RelatedSearch extends BaseSearch
         }, $data['aggregations']['groupByName']['buckets']);
     }
 
+    protected function getFieldSuggestions(string $field): array
+    {
+        $params = [
+            'index' => $this->getIndexName(),
+            'body' => [
+                'size' => 0, // ignore hits
+                'query' => ['constant_score' => ['filter' => $this->getSelectedFieldsFilter()]],
+                'aggs' => [
+                    'groupByName' => [
+                        'terms' => [
+                            'field' => "$field.norm",
+                            // Sorting by docs count is better as frequent values are more likely to be searched for.
+                            'order' => ["_count" => 'desc'],
+                            // 'size' => 100, // amount of unique suggestions to return
+                        ],
+                        'aggs' => [
+                            // Return the top document to get a display value from its field.
+                            'topHits' => ['top_hits' => ['size' => 1]],
+                        ],
+                    ],
+                    'totalCount' => ['cardinality' => ['field' => "$field.norm"]],
+                ],
+            ],
+        ];
+
+        // todo: concurrent queries
+        $this->logParams("Related [$field] body", $params);
+        $result = EsClient::build(true)->search($params);
+        $this->logger->info("Related [$field] took {$result['took']}ms");
+
+        return $result;
+    }
+
     protected function getMatchedData(): array
     {
         // todo: for now take the first. ideally show e.g. 3 suggested variants;
@@ -103,13 +91,15 @@ class RelatedSearch extends BaseSearch
             ],
         ]);
 
-        if ($this->withMeta) {
+        if ($this->withDebug) {
             return $data;
         }
 
         return array_map(function (array $item) {
-            return $item;
+            return array_merge($item['_source'], [
+                '_index' => $item['_index'],
+                '_id' => $item['_id'],
+            ]);
         }, $data['hits']['hits']);
     }
-
 }

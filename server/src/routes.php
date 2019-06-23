@@ -24,7 +24,7 @@ $app->get('/api/typing', function (Request $request, Response $response) {
     $search = new TypingSearch(
         (string) $field,
         $selected,
-        (bool) $request->getQueryParam('meta', false),
+        (bool) $request->getQueryParam('debug', false),
         $request->getQueryParam('index')
     );
     $result = $search->search((string) $query);
@@ -48,7 +48,7 @@ $app->get('/api/related', function (Request $request, Response $response, array 
     $search = new RelatedSearch(
         $empty,
         $selected,
-        (bool) $request->getQueryParam('meta', false),
+        (bool) $request->getQueryParam('debug', false),
         $request->getQueryParam('index')
     );
     $result = $search->search();
@@ -64,7 +64,7 @@ $app->get('/api/chart', function (Request $request, Response $response) {
     $type = $request->getQueryParam('type', ChartSearch::TYPE_SONGS);
     $chart = $request->getQueryParam('chart', false);
 
-    $search = new ChartSearch($type, $chart, (bool) $request->getQueryParam('meta', false));
+    $search = new ChartSearch($type, $chart, (bool) $request->getQueryParam('debug', false));
     $result = $search->search($query ?: [], $request->getQueryParams());
 
     return $response->withJson($result);

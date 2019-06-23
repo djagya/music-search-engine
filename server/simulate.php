@@ -9,7 +9,8 @@ $started = time();
 $lastExecuted = null;
 $lastTimestamp = null;
 
-$delay = 0.1;
+//$delay = 0.1;
+$delay = 0; // to check the throughput
 
 $searchModel = new TypingSearch('artist_name', [], false);
 
@@ -44,7 +45,7 @@ while (($line = fgets($perfLog)) !== false) {
 
     $data = [
         'datetime' => date('Y-m-d H:i:s'),
-        'took' => $result['tookMs'],
+        'took' => $result['took'],
         'count' => $result['total']['value'],
         'origTook' => $origTime,
         'origCount' => $body['n'],
