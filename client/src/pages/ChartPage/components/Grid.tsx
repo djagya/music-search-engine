@@ -50,6 +50,7 @@ export function Th({
   placeholder,
   currentSort,
   sortable = false,
+  rangeFilter = false,
   onSortChange,
 }: {
   name: string;
@@ -57,6 +58,7 @@ export function Th({
   placeholder?: string;
   currentSort?: string | null; // [-]field
   sortable?: boolean;
+  rangeFilter?: boolean;
   onSortChange?: any;
 }) {
   const direction =
@@ -90,7 +92,14 @@ export function Th({
             label
           )}
         </span>
-        <input type="text" name={`query[${name}]`} placeholder={placeholder || `${label} filter`} />
+        {rangeFilter ? (
+          <>
+            <input type="text" name={`query[${name}][from]`} placeholder={`From ${placeholder}` || `${label} filter`} />
+            <input type="text" name={`query[${name}][to]`} placeholder={`To ${placeholder}` || `${label} filter`} />
+          </>
+        ) : (
+          <input type="text" name={`query[${name}]`} placeholder={placeholder || `${label} filter`} />
+        )}
       </div>
     </th>
   );

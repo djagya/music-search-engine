@@ -1,6 +1,6 @@
 import styles from '../Chart.module.scss';
 import React from 'react';
-import { FIELDS, LABELS } from '../ChartPage';
+import { FIELDS, LABELS, TYPE_SONGS } from '../ChartPage';
 import { Th } from './Grid';
 import { formatDuration } from "../../../utils";
 
@@ -9,14 +9,18 @@ export default function SongTable({
   rows,
   charted,
   currentSort,
+  gridType,
+  index,
   onSortChange,
 }: {
   rows: any[];
   charted: boolean;
   currentSort: string | null;
+  gridType: string;
+  index: string;
   onSortChange: any;
 }) {
-  const hasTimestamp = rows[0] && rows[0].spin_timestamp;
+  const hasTimestamp = gridType === TYPE_SONGS && index === 'spins';
 
   return (
     <table className={styles.table}>
@@ -28,6 +32,8 @@ export default function SongTable({
             name="spin_timestamp"
             label="Timestamp"
             sortable
+            placeholder="datetime"
+            rangeFilter
             currentSort={currentSort}
             onSortChange={onSortChange}
           />
@@ -73,12 +79,12 @@ export default function SongTable({
             {row.release_medium && <span>{row.release_medium}</span>}
             {row.song_isrc && (
               <span>
-                  <b>ISRC:</b> {row.song_isrc}
+                  ISRC {row.song_isrc}
                 </span>
             )}
             {row.release_upc && (
               <span>
-                  <b>UPC:</b> {row.release_upc}
+                  UPC {row.release_upc}
                 </span>
             )}
           </td>

@@ -6,6 +6,7 @@ use app\EsClient;
 use app\Indexes;
 use app\Logger;
 use InvalidArgumentException;
+use Throwable;
 
 class ChartSearch
 {
@@ -83,7 +84,7 @@ class ChartSearch
                 'sort' => [$sortField => $this->direction === SORT_DESC ? 'desc' : 'asc'],
                 'aggs' => [
                     'totalCount' => [
-                        'cardinality' => ['field' => $this->index === 'spins' ? 'id' : 'song_id'],
+                        'cardinality' => ['field' => '_id'],
                     ],
                 ],
             ],
@@ -351,13 +352,32 @@ class ChartSearch
             }
             if ($field === 'release_year_released') {
                 // Filter by year range [from]-[to] or just [year] if single number is specified.
-                [$from, $to] = array_pad(explode('-', $value), 2, null);
+                [$from, $to] = array_filter(array_pad(explode('-', $value), 2, null), 'is_numeric');
                 if (!$to) {
+                    // Invalid values.
+                    if (!$from) {
+                        continue;
+                    }
                     $to = $from;
                 }
                 $filter[] = ['range' => [$field => ['gte' => $from, 'lte' => $to]]];
+            } elseif ($field === 'spin_timestamp') {
+                $f = [];
+                try {
+                    if (!empty($value['from'])) {
+                        $f['gte'] = gmdate('Y-m-d H:i:s', strtotime($value['from']));
+                    }
+                    if (!empty($value['to'])) {
+                        $f['lte'] = gmdate('Y-m-d H:i:s', strtotime($value['to']));
+                    }
+                } catch (Throwable $e) {
+                    // Catch errors when input string can't be converted to time.
+                }
+                if ($f) {
+                    $filter[] = ['range' => [$field => $f]];
+                }
             } else {
-                $filter[] = ['term' => ["$field.norm" => $value]];
+                $filter[] = ['term' => [$field => $value]];
             }
         }
 

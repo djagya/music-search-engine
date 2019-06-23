@@ -8,7 +8,7 @@ import ArtistsTable from './components/ArtistsTable';
 import { OptionSelect } from './components/GridSettings';
 import Grid from './components/Grid';
 
-const TYPE_SONGS = 'songs';
+export const TYPE_SONGS = 'songs';
 const TYPE_ARTISTS = 'artists';
 const TYPE_RELEASES = 'releases';
 
@@ -81,6 +81,8 @@ export default function ChartPage() {
       rows,
       charted: chartMode,
       currentSort: response && response.pagination.sort,
+      gridType,
+      index,
       onSortChange: (sort: string | null) => {
         fetchData({ sort });
       },
