@@ -136,20 +136,25 @@ abstract class BaseHarvester
         $batchN = 0;
         do {
             // Fetch the next data batch.
+            $batchTime = microtime(true);
             $rows = $pdo->prepare($query);
             $rows->execute([$fromId, $toId]);
+            $rows = $rows->fetchAll();
+            $indexedCount += count($rows);
+            $batchTime = microtime(true) - $batchTime;
 
-            $indexedCount += $rows->rowCount();
+            echo "Time $batchTime \n";
+
             $fromId += $step;
             $toId += $step;
             $batchN += 1;
 
-            if (!$rows->rowCount()) {
+            if (!$rows) {
                 continue;
             }
 
             // Convert to ES query body.
-            $params['body'] = $this->getEsBatchBody($rows->fetchAll());
+            $params['body'] = $this->getEsBatchBody($rows);
 
             try {
                 if (!empty($params['body'])) {
@@ -161,7 +166,8 @@ abstract class BaseHarvester
                     $e->getMessage()));
             }
             if ($batchN % 100 === 0) {
-                $this->log(sprintf('batch %s out of %s', self::format($batchN), self::format($totalBatches)));
+                $this->log(sprintf('batch %s out of %s, took %f', self::format($batchN), self::format($totalBatches),
+                    $batchTime));
             }
 
             // Prepare for a new batch.

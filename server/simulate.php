@@ -60,6 +60,9 @@ $id .= $forkId;
 shuffle($lines);
 
 $resLog = fopen("$logsDir/$id.log", 'w+');
+// Header row.
+fputcsv($resLog, ['timestamp', 'took', 'count', 'origTook', 'origCount', 'field']);
+
 $count = 0;
 while ($line = array_pop($lines)) {
     [$date, $time, $body] = explode(' ', $line, 3);
@@ -72,7 +75,7 @@ while ($line = array_pop($lines)) {
     $result = $searchModels[$field]->search($query);
 
     $data = [
-        'datetime' => date('Y-m-d H:i:s'),
+        'timestamp' => time(),
         'took' => $result['took'],
         'count' => $result['total']['value'],
         'origTook' => $origTime,
