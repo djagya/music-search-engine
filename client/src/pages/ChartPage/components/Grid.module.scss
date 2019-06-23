@@ -68,14 +68,14 @@ $lightGrey: #f5f5f5;
     li.active {
         background-color: $accentColor;
 
-        a {
+        a, span {
             color: white;
             font-weight: bold;
             text-decoration: none;
         }
     }
 
-    a {
+    a, span {
         display: inline-block;
         padding: $spacing / 2 $spacing;
         color: $accentColor;

@@ -74,7 +74,15 @@ class ChartSearch
     protected function searchSongs(array $query): array
     {
         // todo: chart mode using the db to be able to group by on the whole dataset.
-        $sortField = $this->index === 'spins' && $this->sort === 'spin_timestamp' ? 'spin_timestamp' : 'song_name.sort';
+        $sortField =
+            $this->index === 'spins' && $this->sort === 'spin_timestamp' ? 'spin_timestamp' : "{$this->sort}.sort";
+        if ($this->sort === 'release_year_released') {
+            $sortField = $this->sort;
+        }
+        if (!$this->sort) {
+            $sortField = 'song_name.sort';
+        }
+
         $params = [
             'index' => $this->getIndexName(),
             'size' => $this->pageSize,
@@ -228,8 +236,9 @@ class ChartSearch
             // Take top artists, size is big to fetch the current page of data, no way to paginate.
             $groupAgg = [
                 'terms' => [
-                    'size' => $this->pageSize * $this->page,
+                    'size' => $this->pageSize + $this->pageSize * $this->page,
                     'field' => "$field.norm",
+                    'order' => ['_count' => $this->direction === SORT_ASC ? 'asc' : 'desc'],
                 ],
             ];
         } else {
@@ -237,7 +246,14 @@ class ChartSearch
                 'composite' => [
                     'size' => $this->pageSize,
                     'sources' => [
-                        ['release' => ['terms' => ['field' => "$field.norm", 'order' => 'asc']]],
+                        [
+                            'release' => [
+                                'terms' => [
+                                    'field' => "$field.norm",
+                                    'order' => $this->direction === SORT_DESC ? 'desc' : 'asc',
+                                ],
+                            ],
+                        ],
                     ],
                 ],
             ];
@@ -290,7 +306,7 @@ class ChartSearch
                         'cardinality' => ['field' => "$field.norm"],
                     ],
                 ],
-                'size' => 0, // don't return search hits, because we work with aggregated buckets only
+                'size' => 0,
             ],
         ];
 
@@ -324,8 +340,10 @@ class ChartSearch
             'total' => ['value' => $result['aggregations']['totalCount']['value'], 'relation' => ''],
             'pagination' => [
                 // Needed when not sorted by doc_count.
-                'after' => $namesAgg['after_key']['artist'] ?? null,
+                'after' => $namesAgg['after_key']['release'] ?? null,
                 'prev' => $this->after,
+                'sort' => implode('',
+                    [$this->direction === SORT_DESC ? '-' : '', $this->sort ?: $field]),
             ],
             'rows' => $rows,
         ];
@@ -333,13 +351,13 @@ class ChartSearch
 
     protected function getQuery(array $query): array
     {
-        // Generate query for fields with supported prefix search (main AC fields). Use root indexed field.
+        // Generate query for fields with supported prefix search (main AC fields).
         // todo: write in bachelor. elasticsearch doesn't store positions of terms (unless it's enabled as term_vector),
         // so can't use edge_ngrams for prefix matching as it doesn't fetch values STARTING with the specified filter.
         $fullTextQuery = [];
         foreach (BaseSearch::AC_FIELDS as $fullTextField) {
             if (!empty($query[$fullTextField])) {
-                $fullTextQuery[] = ['prefix' => ["$fullTextField.norm" => $query[$fullTextField]]];
+                $fullTextQuery[] = ['match' => ["$fullTextField" => $query[$fullTextField]]];
                 unset($query[$fullTextField]);
             }
         }
@@ -377,7 +395,7 @@ class ChartSearch
                     $filter[] = ['range' => [$field => $f]];
                 }
             } else {
-                $filter[] = ['term' => [$field => $value]];
+                $filter[] = ['prefix' => [$field => $value]];
             }
         }
 

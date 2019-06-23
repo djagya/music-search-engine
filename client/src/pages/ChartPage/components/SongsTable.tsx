@@ -2,7 +2,7 @@ import styles from '../Chart.module.scss';
 import React from 'react';
 import { FIELDS, LABELS, TYPE_SONGS } from '../ChartPage';
 import { Th } from './Grid';
-import { formatDuration } from "../../../utils";
+import { formatDuration } from '../../../utils';
 
 // todo: implement sorting by timestamp for spins, and other fields for both indexes
 export default function SongTable({
@@ -31,16 +31,22 @@ export default function SongTable({
           <Th
             name="spin_timestamp"
             label="Timestamp"
-            sortable
             placeholder="datetime"
             rangeFilter
+            sortable
             currentSort={currentSort}
             onSortChange={onSortChange}
           />
         )}
         <th />
 
-        <Th name={FIELDS.artist} label={LABELS[FIELDS.artist]} />
+        <Th
+          name={FIELDS.artist}
+          label={LABELS[FIELDS.artist]}
+          sortable
+          currentSort={currentSort}
+          onSortChange={onSortChange}
+        />
         <Th
           name={FIELDS.song}
           label={LABELS[FIELDS.song]}
@@ -48,10 +54,23 @@ export default function SongTable({
           currentSort={currentSort}
           onSortChange={onSortChange}
         />
-        <Th name={FIELDS.release} label={LABELS[FIELDS.release]} />
+        <Th
+          name={FIELDS.release}
+          label={LABELS[FIELDS.release]}
+          sortable
+          currentSort={currentSort}
+          onSortChange={onSortChange}
+        />
         <Th name={'label_name'} label="Label" />
         <Th name={'release_genre'} label="Genre" />
-        <Th name={'release_year_released'} label="Released" placeholder={'[year] or [from]-[to]'} />
+        <Th
+          name={'release_year_released'}
+          label="Released"
+          placeholder={'[year] or [from]-[to]'}
+          sortable
+          currentSort={currentSort}
+          onSortChange={onSortChange}
+        />
 
         <th>Data</th>
       </tr>
@@ -77,16 +96,8 @@ export default function SongTable({
           <td>
             {row.release_various_artists == 1 && <span>V/A</span>}
             {row.release_medium && <span>{row.release_medium}</span>}
-            {row.song_isrc && (
-              <span>
-                  ISRC {row.song_isrc}
-                </span>
-            )}
-            {row.release_upc && (
-              <span>
-                  UPC {row.release_upc}
-                </span>
-            )}
+            {row.song_isrc && <span>ISRC {row.song_isrc}</span>}
+            {row.release_upc && <span>UPC {row.release_upc}</span>}
           </td>
         </tr>
       ))}

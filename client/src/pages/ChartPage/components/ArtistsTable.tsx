@@ -20,7 +20,7 @@ export default function ArtistsTable({
       <thead>
       <tr>
         {charted && <th>Rank</th>}
-        <Th name="count" label="Count" sortable currentSort={currentSort} onSortChange={onSortChange} />
+        <Th name="count" label="Count" sortable filter={false} currentSort={currentSort} onSortChange={onSortChange} />
         <Th
           name={FIELDS.artist}
           label={LABELS[FIELDS.artist]}

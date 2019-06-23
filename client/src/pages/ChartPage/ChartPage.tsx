@@ -84,7 +84,8 @@ export default function ChartPage() {
       gridType,
       index,
       onSortChange: (sort: string | null) => {
-        fetchData({ sort });
+        // Reset pagination on sort change.
+        fetchData({ sort, page: 0, after: null });
       },
     });
   }
@@ -116,7 +117,16 @@ export default function ChartPage() {
           Search
         </button>
         &nbsp;
-        <button type="reset" onClick={() => fetchData({ page: 0, after: null })}>
+        <button
+          type="reset"
+          onClick={() => {
+            setGridType(TYPE_SONGS);
+            // Wait for form reset to complete.
+            setTimeout(() => {
+              fetchData({ page: 0, after: null, sort: null });
+            });
+          }}
+        >
           Reset
         </button>
         <Grid response={response} onPageChange={(page: number, after: string | null) => fetchData({ page, after })}>
@@ -160,4 +170,3 @@ function GridSettings({
     </div>
   );
 }
-

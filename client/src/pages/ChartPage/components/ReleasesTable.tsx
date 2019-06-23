@@ -20,15 +20,30 @@ export default function ReleasesTable({
       <thead>
       <tr>
         {charted && <th>Rank</th>}
-        <th>Count</th>
-        <Th name="count" label="Count" sortable currentSort={currentSort} onSortChange={onSortChange} />
+        <Th
+          name="count"
+          label="Count"
+          sortable
+          filter={false}
+          currentSort={currentSort}
+          onSortChange={onSortChange}
+        />
 
-        <Th name={FIELDS.release} label={LABELS[FIELDS.release]} sortable currentSort={currentSort}
-          onSortChange={onSortChange} />
+        <Th
+          name={FIELDS.release}
+          label={LABELS[FIELDS.release]}
+          sortable
+          currentSort={currentSort}
+          onSortChange={onSortChange}
+        />
         <Th name={FIELDS.artist} label={LABELS[FIELDS.artist]} />
         <Th name={'release_genre'} label="Genre" />
         <Th name={'label_name'} label="Label" />
-        <Th name={'release_year_released'} label="Released" />
+        <Th
+          name={'release_year_released'}
+          label="Released"
+          placeholder={'[year] or [from]-[to]'}
+        />
       </tr>
       </thead>
 

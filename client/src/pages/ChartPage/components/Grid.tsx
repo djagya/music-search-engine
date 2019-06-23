@@ -50,6 +50,7 @@ export function Th({
   placeholder,
   currentSort,
   sortable = false,
+  filter = true,
   rangeFilter = false,
   onSortChange,
 }: {
@@ -58,6 +59,7 @@ export function Th({
   placeholder?: string;
   currentSort?: string | null; // [-]field
   sortable?: boolean;
+  filter?: boolean;
   rangeFilter?: boolean;
   onSortChange?: any;
 }) {
@@ -74,6 +76,8 @@ export function Th({
     }[direction]
     : '';
 
+  console.log(direction);
+
   return (
     <th>
       <div>
@@ -83,21 +87,22 @@ export function Th({
               href="#"
               onClick={e => {
                 e.preventDefault();
-                onSortChange(direction === 1 ? `-${name}` : name);
+                onSortChange(direction === SORT_DESC ? name : `-${name}`);
               }}
             >
-              {label} {icon}
+              {label}&nbsp;{icon}
             </a>
           ) : (
             label
           )}
         </span>
-        {rangeFilter ? (
+        {filter && rangeFilter && (
           <>
             <input type="text" name={`query[${name}][from]`} placeholder={`From ${placeholder}` || `${label} filter`} />
             <input type="text" name={`query[${name}][to]`} placeholder={`To ${placeholder}` || `${label} filter`} />
           </>
-        ) : (
+        )}
+        {filter && !rangeFilter && (
           <input type="text" name={`query[${name}]`} placeholder={placeholder || `${label} filter`} />
         )}
       </div>
@@ -110,7 +115,7 @@ function Pagination({ response, onPageChange }: { response: ChartResponse; onPag
   const VISIBLE_PAGES_LIMIT = 10;
   const pagesCount = Math.ceil(response.total.value / PAGE_SIZE);
   const displayPages = Math.min(pagesCount, VISIBLE_PAGES_LIMIT);
-  const { page, after } = response.pagination;
+  const { page, after, prev } = response.pagination;
 
   // Reset stack of prev cursors.
   useEffect(() => {
@@ -120,7 +125,6 @@ function Pagination({ response, onPageChange }: { response: ChartResponse; onPag
   }, [page]);
 
   if (after) {
-    // todo: fix, when first item is the second after, so when go back to zero page it doesn't fully reset
     return (
       <ul className={styles.Pagination}>
         {page != 0 && (
@@ -138,14 +142,16 @@ function Pagination({ response, onPageChange }: { response: ChartResponse; onPag
           </li>
         )}
         <li className={styles.active}>
-          <a>{page + 1}</a>
+          <span>{page + 1}</span>
         </li>
         {page + 1 < pagesCount && (
           <li>
             <a
               href="#"
               onClick={() => {
-                prevStack.push(after);
+                if (prev) {
+                  prevStack.push(prev);
+                }
                 setPrevStack(prevStack);
                 onPageChange(page + 1, after);
               }}
@@ -162,9 +168,13 @@ function Pagination({ response, onPageChange }: { response: ChartResponse; onPag
     <ul className={styles.Pagination}>
       {Array.from(Array(displayPages).keys()).map(p => (
         <li className={page === p ? styles.active : undefined} key={p}>
-          <a href="#" onClick={() => onPageChange(p)}>
-            {p + 1}
-          </a>
+          {page !== p ? (
+            <a href="#" onClick={() => onPageChange(p)}>
+              {p + 1}
+            </a>
+          ) : (
+            <span>{p + 1}</span>
+          )}
         </li>
       ))}
 
