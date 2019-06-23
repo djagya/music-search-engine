@@ -1,6 +1,6 @@
-import React, { useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import styles from './Search.module.scss';
-import { RelatedResponse, SearchResponse, SelectedFields, Suggestion } from '../../types';
+import { SearchResponse, SelectedFields, Song, Suggestion } from '../../types';
 import { fetchRelatedSuggestions, fetchSuggestions } from '../../data';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import AcInput from './components/AcInput';
@@ -21,7 +21,6 @@ const defaultValues = {
   release_title: '',
 };
 
-
 const LABELS: { [field: string]: string } = {
   artist_name: 'Artist',
   song_name: 'Song',
@@ -40,10 +39,20 @@ interface FieldsSearchResponse {
 export default function SearchPage() {
   const [typingResponses, setTyping] = useState<FieldsSearchResponse>(defaultList);
   const [inputValues, setInputValues] = useState<{ [field: string]: string }>(defaultValues);
-  const [relatedResponse, setRelated] = useState<RelatedResponse | null>(null);
+  const [relRes, setRelRes] = useState<FieldsSearchResponse>(defaultList);
+  const [matchedItems, setMatchedItems] = useState<Song[]>([]);
 
   const [fieldsSelected, setSelected] = useState<SelectedFields>(defaultList);
   const currentTyped = useRef<string>('');
+
+  // When there are no typing responses, reset everything related.
+  useEffect(() => {
+    if (Object.values(typingResponses).filter(_ => _ !== null).length === 0) {
+      setRelRes(defaultList);
+      setSelected(defaultList);
+      setMatchedItems([]);
+    }
+  }, [typingResponses]);
 
   /**
    * GET autocomplete suggestions for the field.
@@ -54,8 +63,10 @@ export default function SearchPage() {
 
       // Reset related suggestions and current selected field.
       const newSelected = { ...fieldsSelected, [name]: null };
-      setRelated(null);
       setSelected(newSelected);
+
+      // Reset related responses too.
+      setRelRes(defaultList);
 
       // Remember the most recent typed value to ignore delayed suggestions for previous values.
       currentTyped.current = value;
@@ -97,28 +108,10 @@ export default function SearchPage() {
         if ('error' in res) {
           throw new Error(res.error);
         }
-        setRelated(res);
+        setMatchedItems(res.data);
+        setRelRes({ ...relRes, ...res.fields });
       });
     };
-  }
-
-  function renderAcInput(field: string) {
-    const selected = fieldsSelected[field];
-    const typingResponse = typingResponses[field];
-    // If field is already selected, don't provide "related" suggestions, keep "typing" to allow to select another one.
-    const related = fieldsSelected[field] || !relatedResponse ? null : relatedResponse.fields[field];
-
-    return (
-      <AcInput
-        name={field}
-        value={inputValues[field]}
-        selected={selected}
-        response={related || typingResponse}
-        placeholder={LABELS[field]}
-        onTyping={typingHandler(field)}
-        onSelect={selectionHandler(field)}
-      />
-    );
   }
 
   return (
@@ -126,23 +119,37 @@ export default function SearchPage() {
       <div className={styles.Panel}>
         <div className={styles.Form}>
           {fields.map((field: string) => (
-            <ErrorBoundary key={field}>{renderAcInput(field)}</ErrorBoundary>
+            <ErrorBoundary key={field}>
+              <AcInput
+                name={field}
+                value={inputValues[field]}
+                selected={fieldsSelected[field]}
+                response={typingResponses[field] || relRes[field]}
+                placeholder={LABELS[field]}
+                onTyping={typingHandler(field)}
+                onSelect={selectionHandler(field)}
+              />
+            </ErrorBoundary>
           ))}
 
-          <a href="#" onClick={(e) => {
-            e.preventDefault();
-            setSelected(defaultList);
-            setTyping(defaultList);
-            setRelated(null);
-            setInputValues(defaultValues);
-          }} style={{ alignSelf: 'center' }}>Clear</a>
+          <a
+            href="#"
+            onClick={e => {
+              e.preventDefault();
+              setTyping(defaultList);
+              setInputValues(defaultValues);
+            }}
+            style={{ alignSelf: 'center' }}
+          >
+            Clear
+          </a>
         </div>
       </div>
 
       <div className={styles.Preview}>
         <Heading h={3}>Data preview</Heading>
 
-        {relatedResponse && relatedResponse.data && <MatchesPreview data={relatedResponse.data} />}
+        {matchedItems.length > 0 && <MatchesPreview data={matchedItems} />}
       </div>
     </div>
   );
