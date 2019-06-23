@@ -3,4 +3,4 @@
 aws-credentials.csv
 bachelor-search.pem
 .env
-
+.ipynb_checkpoints
