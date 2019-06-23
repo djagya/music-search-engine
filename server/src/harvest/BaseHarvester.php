@@ -12,7 +12,7 @@ abstract class BaseHarvester
     const INDEX_NAME = '';
 
     const BATCH_SIZE = 5000;
-    const DEV_LIMIT = 200000;
+    const DEV_LIMIT = 1000000;
 
     protected static $minId;
     protected static $maxId;
@@ -133,7 +133,7 @@ abstract class BaseHarvester
             if (!is_dir($path)) {
                 mkdir($path);
             }
-            $perfLog = fopen($path . date('YmdHis') . '.log', 'w+');
+            $perfLog = fopen($path . date('YmdHis') . '_' . self::BATCH_SIZE . '.log', 'w+');
             fputcsv($perfLog, ['timestamp', 'batchTime', 'transformTime', 'bulkTime']);
         }
 

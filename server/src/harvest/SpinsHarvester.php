@@ -16,6 +16,7 @@ use PDO;
 class SpinsHarvester extends BaseHarvester
 {
     const INDEX_NAME = Indexes::SPINS_IDX;
+    const BATCH_SIZE = 100;
 
     protected static function before(): void
     {

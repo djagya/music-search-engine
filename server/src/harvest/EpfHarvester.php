@@ -10,7 +10,6 @@ use PDO;
 class EpfHarvester extends BaseHarvester
 {
     const INDEX_NAME = Indexes::EPF_IDX;
-    const BATCH_SIZE = 5000;
 
     /** @var array [genre id => name] */
     private static $genresMap = [];
