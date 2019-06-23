@@ -143,8 +143,6 @@ abstract class BaseHarvester
             $indexedCount += count($rows);
             $batchTime = microtime(true) - $batchTime;
 
-            echo "Time $batchTime \n";
-
             $fromId += $step;
             $toId += $step;
             $batchN += 1;
