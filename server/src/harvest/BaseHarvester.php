@@ -127,7 +127,7 @@ abstract class BaseHarvester
 
         $this->log(sprintf('started from ID %s to ID %s, max song id %s', self::format($fromId), self::format($toId),
             self::format(self::$maxId)));
-        $this->log(sprintf('total batches: %s', self::format($totalBatches)));
+        $this->log(sprintf('batch size: %s, total batches: %s', self::format($batchSize), self::format($totalBatches)));
 
         $perfLog = false;
         if ($this->forkN === 0) {
