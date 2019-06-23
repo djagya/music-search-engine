@@ -159,6 +159,3 @@ function GridSettings({
   );
 }
 
-export function formatDuration(duration: number) {
-  return `${Math.floor(duration / 1000 / 60)}:${`0${Math.floor((duration / 1000) % 60)}`.slice(-2)}`;
-}

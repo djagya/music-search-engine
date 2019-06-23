@@ -1,7 +1,8 @@
 import styles from '../Chart.module.scss';
 import React from 'react';
-import { FIELDS, formatDuration, LABELS } from '../ChartPage';
+import { FIELDS, LABELS } from '../ChartPage';
 import { Th } from './Grid';
+import { formatDuration } from "../../../utils";
 
 // todo: implement sorting by timestamp for spins, and other fields for both indexes
 export default function SongTable({

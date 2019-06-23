@@ -1,38 +1,21 @@
-import { SearchResponse, Suggestion } from '../../types';
+import { SearchResponse, Suggestion } from '../../../types';
 import styles from './Suggestions.module.scss';
 import React from 'react';
-import { formatTotal } from '../../utils';
 
 interface SuggestionsProps {
-  data: SearchResponse | null;
+  data: SearchResponse['suggestions'];
   selected: Suggestion | null;
   onSelect: { (suggestion: Suggestion): void };
   style: React.CSSProperties | undefined;
 }
 
 export default function Suggestions({ data, selected, onSelect, style }: SuggestionsProps) {
-  if (!data) {
-    return null;
-  }
-  const { total, took, suggestions } = data;
-
-  const listItems = (items: Suggestion[]) =>
-    items.length ? (
-      items.map(_ => <ListItem key={_.id} item={_} active={selected} onSelect={onSelect} />)
-    ) : (
-      <li>No results.</li>
-    );
-
   return (
     <div className={styles.Suggestions} style={style}>
-      {suggestions.length > 0 && (
-        <div>
-          <small>
-            <b>total</b> {formatTotal(total)}&nbsp;&nbsp;<b>took</b> {took}ms
-          </small>
-        </div>
-      )}
-      <ul className={styles.list}>{listItems(suggestions)}</ul>
+      <ul className={styles.list}>
+        {data.length === 0 && <li>No results.</li>}
+        {data.length > 0 && data.map(_ => <ListItem key={_.id} item={_} active={selected} onSelect={onSelect} />)}
+      </ul>
     </div>
   );
 }
@@ -49,7 +32,7 @@ function ListItem({ active, item, onSelect }: ListItemProps) {
       <button className={styles.itemButton} onClick={() => onSelect(item)}>
         {item.value}
         <small className={styles.itemMeta}>
-          [score: {item.score}; count: {item.count}; {item._index}]
+          [{item.score !== 1 ? `score: ${item.score}; ` : ''}n: {item.count}; {item._index}]
         </small>
       </button>
     </li>

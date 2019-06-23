@@ -9,10 +9,10 @@ $horizontalSpace: 0.75em;
   max-height: 25em;
   overflow-x: auto;
 
-  border-top: #003d00 3px solid;
   border-bottom: #003d00 3px solid;
   border-bottom-left-radius: $borderRadius;
   border-bottom-right-radius: $borderRadius;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
 }
 
 .list {
@@ -47,6 +47,6 @@ $horizontalSpace: 0.75em;
 
 .itemMeta {
   font-size: 0.8em;
-  font-color: #666;
+  color: #666;
   display: block;
 }

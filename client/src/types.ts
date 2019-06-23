@@ -18,7 +18,7 @@ export interface Suggestion {
 
 export interface RelatedResponse {
   fields: { [field: string]: SearchResponse };
-  data: any;
+  data: Song[];
 }
 
 export interface SelectedFields {
@@ -45,4 +45,33 @@ export interface ChartResponse {
 export interface Total {
   value: number;
   relation: string;
+}
+
+export interface Song {
+  _index: string;
+  _id: string;
+
+  // Main fields.
+  artist_name: string;
+  release_title: string;
+  song_name: string;
+
+  // Metadata.
+  release_genre: string | null;
+  release_various_artists: number;
+  release_year_released: number | null;
+  release_upc: string | null;
+  label_name: string | null;
+  cover_art_url: string | null;
+  release_medium: string | null;
+  song_isrc: string | null;
+  song_duration: number | null;
+
+  // Spins only.
+  id?: number;
+  spin_timestamp?: string;
+  // Epf only.
+  song_id?: number;
+  artist_id?: number;
+  collection_id?: number;
 }

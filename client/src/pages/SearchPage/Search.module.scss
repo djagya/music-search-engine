@@ -6,6 +6,10 @@ $spacing: 0.5em;
     justify-content: center;
     width: 80%;
     margin: 0 auto;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
 }
 
 .Panel {
@@ -20,12 +24,18 @@ $spacing: 0.5em;
     display: flex;
     flex-direction: row;
     justify-content: center;
+  align-items: flex-end;
+
+  > * {
+    margin: $spacing*2 $spacing*2;
+  }
 }
 
 .Preview {
     background-color: #ddd;
     margin-top: -10px;
-    padding-top: 30px;
+  padding-top: 20px;
     border-radius: 3px;
     min-height: 50vh;
+  margin-bottom: $spacing * 2;
 }

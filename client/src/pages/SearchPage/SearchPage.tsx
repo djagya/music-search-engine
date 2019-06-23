@@ -1,10 +1,11 @@
 import React, { useRef, useState } from 'react';
 import styles from './Search.module.scss';
-import { RelatedResponse, SearchResponse, SelectedFields, Suggestion } from '../types';
-import { fetchRelatedSuggestions, fetchSuggestions } from '../data';
-import ErrorBoundary from '../components/ErrorBoundary';
-import AcInput from '../components/AcInput/AcInput';
-import { Heading } from "../components/UI";
+import { RelatedResponse, SearchResponse, SelectedFields, Suggestion } from '../../types';
+import { fetchRelatedSuggestions, fetchSuggestions } from '../../data';
+import ErrorBoundary from '../../components/ErrorBoundary';
+import AcInput from './components/AcInput';
+import { Heading } from '../../components/UI';
+import MatchesPreview from './components/MatchesPreview';
 
 const MIN_PREFIX_LENGTH = 2;
 
@@ -14,6 +15,12 @@ const defaultList = {
   song_name: null,
   release_title: null,
 };
+const defaultValues = {
+  artist_name: '',
+  song_name: '',
+  release_title: '',
+};
+
 
 const LABELS: { [field: string]: string } = {
   artist_name: 'Artist',
@@ -32,10 +39,10 @@ interface FieldsSearchResponse {
  */
 export default function SearchPage() {
   const [typingResponses, setTyping] = useState<FieldsSearchResponse>(defaultList);
+  const [inputValues, setInputValues] = useState<{ [field: string]: string }>(defaultValues);
   const [relatedResponse, setRelated] = useState<RelatedResponse | null>(null);
 
   const [fieldsSelected, setSelected] = useState<SelectedFields>(defaultList);
-  const [activeField, setActiveField] = useState<string | null>();
   const currentTyped = useRef<string>('');
 
   /**
@@ -43,10 +50,14 @@ export default function SearchPage() {
    */
   function typingHandler(name: string) {
     return (value: string) => {
-      const newSelected = { ...fieldsSelected, [name]: null };
+      setInputValues({ ...inputValues, [name]: value });
+
       // Reset related suggestions and current selected field.
+      const newSelected = { ...fieldsSelected, [name]: null };
       setRelated(null);
       setSelected(newSelected);
+
+      // Remember the most recent typed value to ignore delayed suggestions for previous values.
       currentTyped.current = value;
 
       if (!value || value.length < MIN_PREFIX_LENGTH) {
@@ -79,7 +90,8 @@ export default function SearchPage() {
 
       // Remember selected.
       setSelected(selected);
-      setActiveField(null);
+      // Update the input value with a selected suggestion.
+      setInputValues({ ...inputValues, [name]: suggestion.value });
 
       return fetchRelatedSuggestions(empty, selected).then(res => {
         if ('error' in res) {
@@ -91,78 +103,46 @@ export default function SearchPage() {
   }
 
   function renderAcInput(field: string) {
-    const isActive = activeField === field;
     const selected = fieldsSelected[field];
     const typingResponse = typingResponses[field];
-    // const relatedResponse = relatedResponses[field];
     // If field is already selected, don't provide "related" suggestions, keep "typing" to allow to select another one.
     const related = fieldsSelected[field] || !relatedResponse ? null : relatedResponse.fields[field];
 
     return (
       <AcInput
         name={field}
-        isActive={isActive}
+        value={inputValues[field]}
         selected={selected}
-        typingResponse={typingResponse}
-        relatedResponse={related}
+        response={related || typingResponse}
         placeholder={LABELS[field]}
         onTyping={typingHandler(field)}
         onSelect={selectionHandler(field)}
-        onFocus={() => setActiveField(field)}
       />
     );
   }
 
   return (
     <div className={styles.container}>
-      <Panel>
+      <div className={styles.Panel}>
         <div className={styles.Form}>
           {fields.map((field: string) => (
             <ErrorBoundary key={field}>{renderAcInput(field)}</ErrorBoundary>
           ))}
-        </div>
-      </Panel>
 
-      <Preview>
+          <a href="#" onClick={(e) => {
+            e.preventDefault();
+            setSelected(defaultList);
+            setTyping(defaultList);
+            setRelated(null);
+            setInputValues(defaultValues);
+          }} style={{ alignSelf: 'center' }}>Clear</a>
+        </div>
+      </div>
+
+      <div className={styles.Preview}>
         <Heading h={3}>Data preview</Heading>
 
-        {relatedResponse && relatedResponse.data && <Metadata data={relatedResponse.data} />}
-      </Preview>
-    </div>
-  );
-}
-
-function Panel({ children }: { children: any }) {
-  return <div className={styles.Panel}>{children}</div>;
-}
-
-function Preview({ children }: { children: any }) {
-  return <div className={styles.Preview}>{children}</div>;
-}
-
-// todo: each value in the list of grouped values is clickable. on click "choose" the corresponding item and fill the remaining AC fields
-function Metadata({ data }: { data: any[] }) {
-  const attrs = Object.keys(data[0]['_source']);
-
-  const indexes = data.map(item => item._index);
-  const ids = data.map(item => item._id);
-
-  return (
-    <div>
-      <b>Index:</b> {indexes.join(', ')} <br />
-      <b>Id:</b> {ids.join(', ')} <br />
-      <h4>Values</h4>
-      <div style={{ display: 'flex', flexWrap: 'wrap', flexDirection: 'column' }}>
-        {attrs.map(f => (
-          <div key={f}>
-            <b>{f}:</b>
-
-            {data
-              .map(item => item['_source'][f])
-              .filter(_ => !!_)
-              .join(', ')}
-          </div>
-        ))}
+        {relatedResponse && relatedResponse.data && <MatchesPreview data={relatedResponse.data} />}
       </div>
     </div>
   );
