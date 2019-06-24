@@ -9,12 +9,12 @@ echo "Harvesting spins"
 echo "--------"
 
 for size in "${SIZES[@]}"
-do docker-compose exec app php server/harvest.php spins 1 ${LIMIT} ${size}
+do docker-compose run app php server/harvest.php spins 1 ${LIMIT} ${size}
 done
 
 echo "Harvesting EPF"
 echo "--------"
 
 for size in "${SIZES[@]}"
-do docker-compose exec app php server/harvest.php epf 1 ${LIMIT} ${size}
+do docker-compose run app php server/harvest.php epf 1 ${LIMIT} ${size}
 done
