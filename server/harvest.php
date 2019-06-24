@@ -9,12 +9,14 @@ require 'vendor/autoload.php';
 // todo: warm cache command to run from performance file
 
 $index = $argv[1] ?? null;
-$count = $argv[2] ?? 1;
+$forks = $argv[2] ?? 1;
+$limit = $argv[3] ?? null;
+$batchSize = $argv[4] ?? null;
 $reset = !!array_filter($argv, function ($s) {
     return $s === '--reset';
 });
 if (!$index) {
-    echo "Usage: docker-compose exec app php server/harvest.php {settings|epf|spins} [--reset]\n";
+    echo "Usage: docker-compose exec app php server/harvest.php {settings|epf|spins} [forksN] [limit] [batchSize] [--reset]\n";
 
     return;
 }
@@ -32,10 +34,10 @@ if ($index === 'settings') {
 
 if ($index === Indexes::SPINS_IDX) {
     Indexes::init($index, true);
-    SpinsHarvester::run($count);
+    SpinsHarvester::run($forks, $limit, $batchSize);
 } elseif ($index === Indexes::EPF_IDX) {
     Indexes::init($index, true);
-    EpfHarvester::run($count);
+    EpfHarvester::run($forks, $limit, $batchSize);
 } else {
     echo "Invalid index\n";
 }

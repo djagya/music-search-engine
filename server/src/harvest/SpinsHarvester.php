@@ -36,11 +36,11 @@ class SpinsHarvester extends BaseHarvester
     }
 
     /**
-     * After multiple tests 7500 appeared as near optimal to increase the index speed.
+     * After multiple tests 7000 appeared as near optimal to increase the index speed.
      */
     protected function getBatchSize(): int
     {
-        return 7500;
+        return 7000;
     }
 
     protected function getEsBatchBody(array $batch): array

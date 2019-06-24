@@ -24,7 +24,7 @@ abstract class BaseHarvester
      * Spawn multiple harvesters to go over the data source and send batch ES index requests concurrently.
      * @param int $forksCount
      */
-    public static function run(int $forksCount = 3): void
+    public static function run(int $forksCount = 3, ?int $limit = null, ?int $batchSize = null): void
     {
         static::before();
 
@@ -36,7 +36,7 @@ abstract class BaseHarvester
                 // Here runs the children.
                 echo "Children #$i: starting the harvester\n";
                 $harvester = new static($i, $forksCount);
-                $harvester->harvest();
+                $harvester->harvest($limit, $batchSize);
 
                 return;
             }
@@ -112,32 +112,26 @@ abstract class BaseHarvester
 
     /**
      * Start the harvest process.
-     * todo: maybe sequential access is faster for the DB to process?
      */
-    protected function harvest(): void
+    protected function harvest(?int $limit = null, ?int $batchSize = null): void
     {
         $client = EsClient::build();
         $pdo = static::getDb();
 
-        $batchSize = $this->getBatchSize();
+        $batchSize = $batchSize ?: $this->getBatchSize();
         $fromId = self::$minId + $batchSize * $this->forkN; // forkN 0 - from id 0
         $toId = $fromId + $batchSize;
         $step = $batchSize * $this->totalForks;
-        $totalBatches = (int) ceil((self::$maxId - $fromId) / $step);
 
+        $totalBatches = (int) ceil(($limit ?? (self::$maxId - $fromId)) / $step);
+
+        $this->log(sprintf('batch size %s, limit %s, total batches %s', self::format($batchSize),
+            $limit ? self::format($limit) : 'unlimited', self::format($totalBatches)));
         $this->log(sprintf('started from ID %s to ID %s, max song id %s', self::format($fromId), self::format($toId),
             self::format(self::$maxId)));
-        $this->log(sprintf('batch size: %s, total batches: %s', self::format($batchSize), self::format($totalBatches)));
 
-        $perfLog = false;
-        if ($this->forkN === 0) {
-            $path = __DIR__ . '/../../../logs/harvest/';
-            if (!is_dir($path)) {
-                mkdir($path);
-            }
-            $perfLog = fopen($path . date('YmdHis') . '_' . $batchSize . '.' . static::INDEX_NAME . '.log', 'w+');
-            fputcsv($perfLog, ['timestamp', 'batchTime', 'transformTime', 'bulkTime']);
-        }
+        // Performance log.
+        $perfLog = $this->getPerfomanceLogHandle($batchSize, $limit ?? 0);
 
         $query = $this->getQuery();
         $params = [
@@ -197,8 +191,37 @@ abstract class BaseHarvester
 
                 return;
             }
+            if ($limit && $indexedCount > $limit) {
+                echo "Limit $limit is reached\n";
+
+                return;
+            }
         } while ($fromId <= self::$maxId);
         $this->log('harvest is finished');
+    }
+
+    /**
+     * Return the performance log file handle where stats are written for each processed batch.
+     * It's it available only for the first fork.
+     * @param int $batchSize
+     * @param int $limit
+     * @return bool|resource
+     */
+    private function getPerfomanceLogHandle(int $batchSize, int $limit)
+    {
+        if ($this->forkN !== 0) {
+            return false;
+        }
+
+        $path = __DIR__ . '/../../../logs/harvest/';
+        if (!is_dir($path)) {
+            mkdir($path);
+        }
+        $logName = static::INDEX_NAME . "_{$batchSize}_{$limit}.log";
+        $perfLog = fopen($path . $logName, 'w+');
+        fputcsv($perfLog, ['timestamp', 'batchTime', 'transformTime', 'bulkTime']);
+
+        return $perfLog;
     }
 
     abstract protected function getEsBatchBody(array $batch): array;
