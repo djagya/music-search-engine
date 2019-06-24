@@ -175,8 +175,8 @@ abstract class BaseHarvester
                     $e->getMessage()));
             }
             if ($batchN % 100 === 0) {
-                $this->log(sprintf('batch %s out of %s, took %f', self::format($batchN), self::format($totalBatches),
-                    $batchTime));
+                $this->log(sprintf('batch %s, took %f, indexed %s', self::format($batchN),
+                    $batchTime, self::format($indexedCount)));
             }
 
             if ($perfLog) {
