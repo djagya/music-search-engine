@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
-# run for batches 100, 200, 400, 800, 1600, ... for 1m rows
+# Run harvesters for both indexes on 1m documents using various batch sizes.
 
-#SIZES=(100 200 400 800 1600 3200 5000 7000 10000 13000 17000 20000)
-SIZES=(100 200)
-LIMIT=10000
+SIZES=(100 200 400 800 1600 3200 5000 7000 10000 13000 17000 20000)
+LIMIT=1000000
 
 
 echo "Harvesting spins"
