@@ -76,12 +76,12 @@ SQL;
     }
 
     /**
-     * 20000 shows the good results and faster index speed.
+     * 15000 shows the good results and faster index speed.
      * @return int
      */
     protected function getBatchSize(): int
     {
-        return 20000;
+        return 15000;
     }
 
     protected function getEsBatchBody(array $batch): array
