@@ -80,7 +80,6 @@ abstract class BaseHarvester
                 'refresh_interval' => null,
             ],
         ]);
-        // Update replicas.
         $client->indices()->forceMerge(['index' => $index]);
 
         $totalTime = microtime(true) - static::$startTime;
