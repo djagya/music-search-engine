@@ -2,6 +2,8 @@
 
 namespace app\search;
 
+use app\Indexes;
+
 class RelatedSearch extends BaseSearch
 {
     public function search(string $query = null): array
@@ -43,7 +45,6 @@ class RelatedSearch extends BaseSearch
         $params = [
             'index' => $this->getIndexName(),
             'body' => [
-                'size' => 0, // ignore hits
                 'query' => ['constant_score' => ['filter' => $this->getSelectedFieldsFilter()]],
                 'aggs' => [
                     'groupByName' => [
@@ -51,7 +52,7 @@ class RelatedSearch extends BaseSearch
                             'field' => "$field.norm",
                             // Sorting by docs count is better as frequent values are more likely to be searched for.
                             'order' => ["_count" => 'desc'],
-                            // 'size' => 100, // amount of unique suggestions to return
+                            'size' => 50, // amount of unique suggestions to return
                         ],
                         'aggs' => [
                             // Return the top document to get a display value from its field.
@@ -61,6 +62,7 @@ class RelatedSearch extends BaseSearch
                     'totalCount' => ['cardinality' => ['field' => "$field.norm"]],
                 ],
             ],
+            'size' => 0, // ignore hits
         ];
 
         // todo: concurrent queries
@@ -74,7 +76,7 @@ class RelatedSearch extends BaseSearch
     protected function getMatchedData(): array
     {
         $data = $this->client->search([
-            'index' => $this->getIndexName(),
+            'index' => Indexes::EPF_IDX,
             'body' => [
                 'query' => [
                     'bool' => [

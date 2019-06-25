@@ -43,14 +43,9 @@ class TypingSearch extends BaseSearch
                     'query' => $query,
                     'operator' => 'and',
                     // AND is needed so when searching multiple words query - no results with only one of the words are returned (e.g. for "amen co" we don't want result with only "co").
-                    'analyzer' => 'acQueryAnalyzer',
-                    // use the analyzer without n-grams, so we search using only whole terms of the query
-
                     // support misspelling. AUTO:3:6. length < 3 - exact match, 3..5 - one edit allowed, >6 - two edits
                     // todo: fuziness can be slow for our data. then we'll need trigrams?
                     'fuzziness' => 'auto',
-                    'prefix_length' => 3,
-                    // todo: cover in bachelor difference in performance with prefix = 1 or 2 or 3. or no prefix
                 ],
             ],
         ];
@@ -79,27 +74,20 @@ class TypingSearch extends BaseSearch
                         'terms' => [
                             'field' => "$field.norm",
                             'order' => ['maxScore' => 'desc'], // best match first
-                            // 'size' => 100, // amount of unique suggestions to return
+                            'size' => 50, // amount of unique suggestions to return
                         ],
                         'aggs' => [
                             // Aggregate the bucket max score for sorting.
                             'maxScore' => ['max' => ['script' => ['source' => '_score']]],
                             // Return the top document to get a display value.
-                            'topHits' => [
-                                'top_hits' => [
-                                    'size' => 1,
-                                ],
-                            ],
+                            'topHits' => ['top_hits' => ['size' => 1]],
                         ],
                     ],
-                    'totalCount' => [
-                        'cardinality' => ['field' => "$field.norm"],
-                    ],
+                    'totalCount' => ['cardinality' => ['field' => "$field.norm"]],
                 ],
-                'size' => 0, // don't return search hits, because we work with aggregated buckets only
-                // todo: also maybe implement search cancellation when a new request was received
-                'timeout' => '10s',
             ],
+            'size' => 0, // don't return search hits, because we work with aggregated buckets only
+            'timeout' => '10s',
         ];
 
         $this->logParams("Typing [$query] body", $params);
@@ -121,8 +109,6 @@ class TypingSearch extends BaseSearch
                 'value' => $hit['_source'][$this->field],
                 'score' => $hits['max_score'],
                 'count' => $item['doc_count'],
-
-                // fixme: Maybe not needed
                 'id' => $hit['_id'],
                 '_index' => $hit['_index'],
             ];
