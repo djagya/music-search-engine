@@ -263,7 +263,7 @@ class ChartSearch
         $fullTextQuery = [];
         foreach (BaseSearch::AC_FIELDS as $fullTextField) {
             if (!empty($query[$fullTextField])) {
-                $fullTextQuery[] = ['match' => ["$fullTextField" => $query[$fullTextField]]];
+                $fullTextQuery[] = ['match' => ["$fullTextField.norm" => $query[$fullTextField]]];
                 unset($query[$fullTextField]);
             }
         }
