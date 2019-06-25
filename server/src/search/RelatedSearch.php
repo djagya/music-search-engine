@@ -75,21 +75,29 @@ class RelatedSearch extends BaseSearch
 
     protected function getMatchedData(): array
     {
+        $body = [
+            'query' => [
+                'bool' => [
+                    'filter' => $this->getSelectedFieldsFilter(),
+                    'match_all' => [],
+                ],
+            ],
+            'sort' => [
+                ['_id' => 'desc'],
+            ],
+            'size' => 50,
+        ];
+
         $data = $this->client->search([
             'index' => Indexes::EPF_IDX,
-            'body' => [
-                'query' => [
-                    'bool' => [
-                        'filter' => $this->getSelectedFieldsFilter(),
-                        'match_all' => [],
-                    ],
-                ],
-                'sort' => [
-                    ['_id' => 'desc'],
-                ],
-                'size' => 50,
-            ],
+            'body' => $body,
         ]);
+        if (!$data) {
+            $data = $this->client->search([
+                'index' => Indexes::SPINS_IDX,
+                'body' => $body,
+            ]);
+        }
 
         if ($this->withDebug) {
             return $data;
