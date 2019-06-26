@@ -1,4 +1,5 @@
 import React, { useEffect, useRef, useState } from 'react';
+import _ from 'underscore';
 import styles from './Search.module.scss';
 import { SearchResponse, SelectedFields, Song, Suggestion } from '../../types';
 import { fetchRelatedSuggestions, fetchSuggestions } from '../../data';
@@ -77,16 +78,20 @@ export default function SearchPage() {
         return;
       }
 
-      fetchSuggestions(name, value, newSelected).then(res => {
-        if (value !== currentTyped.current) {
-          console.log(`Skipping old typing result for '${value}', current typed '${currentTyped.current}'`);
-          return;
-        }
-        if ('error' in res) {
-          throw new Error(res.error);
-        }
-        setTyping({ ...typingResponses, [name]: res });
-      });
+      _.debounce(
+        () =>
+          fetchSuggestions(name, value, newSelected).then(res => {
+            if (value !== currentTyped.current) {
+              console.log(`Skipping old typing result for '${value}', current typed '${currentTyped.current}'`);
+              return;
+            }
+            if ('error' in res) {
+              throw new Error(res.error);
+            }
+            setTyping({ ...typingResponses, [name]: res });
+          }),
+        200,
+      );
     };
   }
 

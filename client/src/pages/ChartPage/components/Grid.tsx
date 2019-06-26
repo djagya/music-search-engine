@@ -115,6 +115,8 @@ export function Th({
   );
 }
 
+
+// todo: one additional page is disaplyed
 function Pagination({ response, onPageChange }: { response: ChartResponse; onPageChange: any }) {
   const PAGES_LIMIT = 5;
   const pagesCount = Math.ceil(response.total.value / PAGE_SIZE);

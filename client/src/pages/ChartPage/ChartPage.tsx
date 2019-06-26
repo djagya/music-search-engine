@@ -120,11 +120,9 @@ export default function ChartPage() {
         <button
           type="reset"
           onClick={() => {
+            // todo: add loading indicators
             setGridType(TYPE_SONGS);
-            // Wait for form reset to complete.
-            setTimeout(() => {
-              fetchData({ page: 0, after: null, sort: null });
-            });
+            setResponse(null);
           }}
         >
           Reset
