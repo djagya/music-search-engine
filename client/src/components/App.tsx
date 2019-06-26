@@ -36,7 +36,13 @@ export default function App() {
           {link('/chart')}
         </ul>
 
-        <Heading h={2}>{TITLES[route]}</Heading>
+        <div>
+          <Heading h={2}>{TITLES[route]}</Heading>
+          <small>
+            AWS instance (on the right) must be started to make search requests. <br />
+            It will take up to 10 minutes to load. First requests are slow due to the unwarmed cache.
+          </small>
+        </div>
 
         <div className={styles.instance}>
           <span>AWS instance &nbsp;</span>
