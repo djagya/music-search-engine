@@ -74,14 +74,13 @@ export default function SearchPage() {
       // Remember the most recent typed value to ignore delayed suggestions for previous values.
       currentTyped.current = value;
 
-      setTyping({ ...typingResponses, [name]: null });
       if (!value || value.length < MIN_PREFIX_LENGTH) {
         setTyping({ ...typingResponses, [name]: null });
 
         return;
       }
 
-      debouncedFetch(name, value, newSelected).then(res => {
+      fetchSuggestions(name, value, newSelected).then(res => {
         if (value !== currentTyped.current) {
           console.log(`Skipping old typing result for '${value}', current typed '${currentTyped.current}'`);
           return;
