@@ -244,3 +244,12 @@ Client. Development mode with running `docker-compose up` and attached `./` volu
 ```bash
 npm run start
 ```
+
+To warm ES data run in es01 and es02 container:
+```bash
+yum install git make sudo gcc
+git clone https://github.com/hoytech/vmtouch.git
+cd vmtouch
+make
+sudo make install
+```

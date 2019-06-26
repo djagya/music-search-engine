@@ -74,6 +74,7 @@ export default function SearchPage() {
       // Remember the most recent typed value to ignore delayed suggestions for previous values.
       currentTyped.current = value;
 
+      setTyping({ ...typingResponses, [name]: null });
       if (!value || value.length < MIN_PREFIX_LENGTH) {
         setTyping({ ...typingResponses, [name]: null });
 
