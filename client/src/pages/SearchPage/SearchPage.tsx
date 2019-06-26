@@ -32,6 +32,8 @@ interface FieldsSearchResponse {
   [fields: string]: SearchResponse | null;
 }
 
+const debouncedFetch = _.debounce(fetchSuggestions, 200);
+
 /**
  * The main data-entry view has few input fields, each of them provides:
  * - autocomplete suggestion support
@@ -78,20 +80,16 @@ export default function SearchPage() {
         return;
       }
 
-      _.debounce(
-        () =>
-          fetchSuggestions(name, value, newSelected).then(res => {
-            if (value !== currentTyped.current) {
-              console.log(`Skipping old typing result for '${value}', current typed '${currentTyped.current}'`);
-              return;
-            }
-            if ('error' in res) {
-              throw new Error(res.error);
-            }
-            setTyping({ ...typingResponses, [name]: res });
-          }),
-        200,
-      );
+      debouncedFetch(name, value, newSelected).then(res => {
+        if (value !== currentTyped.current) {
+          console.log(`Skipping old typing result for '${value}', current typed '${currentTyped.current}'`);
+          return;
+        }
+        if ('error' in res) {
+          throw new Error(res.error);
+        }
+        setTyping({ ...typingResponses, [name]: res });
+      });
     };
   }
 
