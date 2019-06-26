@@ -92,7 +92,7 @@ class RelatedSearch extends BaseSearch
             'index' => Indexes::EPF_IDX,
             'body' => $body,
         ]);
-        if (!$data) {
+        if (!empty($data['hits']['hits'])) {
             $data = $this->client->search([
                 'index' => Indexes::SPINS_IDX,
                 'body' => $body,
