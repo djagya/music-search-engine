@@ -6,8 +6,6 @@ use app\Indexes;
 
 require 'vendor/autoload.php';
 
-// todo: warm cache command to run from performance file
-
 $index = $argv[1] ?? null;
 $forks = $argv[2] ?? 1;
 $limit = $argv[3] ?? null;

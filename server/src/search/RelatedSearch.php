@@ -32,8 +32,6 @@ class RelatedSearch extends BaseSearch
                 'value' => $hit['_source'][$field],
                 'score' => $hits['max_score'],
                 'count' => $item['doc_count'],
-
-                // fixme: Maybe not needed
                 'id' => $hit['_id'],
                 '_index' => $hit['_index'],
             ];
@@ -65,7 +63,6 @@ class RelatedSearch extends BaseSearch
             'size' => 0, // ignore hits
         ];
 
-        // todo: concurrent queries
         $this->logParams("Related [$field] body", $params);
         $result = $this->client->search($params);
         $this->logger->info("Related [$field] took {$result['took']}ms");

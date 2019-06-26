@@ -28,10 +28,6 @@ export const PAGE_SIZE = 50;
 
 const initPagination = { page: 0, pageSize: PAGE_SIZE, after: null, prev: null };
 
-/**
- * todo: "chart mode" should probably use data only from the 'spins' index? it doesn't make sense to chart epf data?
- *
- */
 export default function ChartPage() {
   const [gridType, setGridType] = useState(TYPE_SONGS);
   const [index, setIndex] = useState<string>('spins');
@@ -120,7 +116,6 @@ export default function ChartPage() {
         <button
           type="reset"
           onClick={() => {
-            // todo: add loading indicators
             setGridType(TYPE_SONGS);
             setResponse(null);
           }}
@@ -150,7 +145,6 @@ function GridSettings({
   onIndexChange: { (e: React.ChangeEvent<HTMLInputElement>): void };
   onChartModeChange: { (e: React.ChangeEvent<HTMLInputElement>): void };
 }) {
-  // todo: for now chart is hidden, it's an additional feature that is not required
   return (
     <div className={styles.gridSettings}>
       <OptionSelect

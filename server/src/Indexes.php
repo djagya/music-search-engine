@@ -76,7 +76,6 @@ class Indexes
         return $result;
     }
 
-    // todo: add analyzer that will be applied to the queries we send to ES. should be the same as the normalizer used during the indexing
     protected static function getSettings(): array
     {
         return [

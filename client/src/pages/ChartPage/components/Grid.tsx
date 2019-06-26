@@ -48,7 +48,6 @@ function Summary({ response }: { response: ChartResponse | null }) {
   );
 }
 
-// todo: implement sorting
 export function Th({
   name,
   label,

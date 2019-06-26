@@ -3,7 +3,6 @@ import React from 'react';
 import { FIELDS, LABELS } from '../ChartPage';
 import { Th } from './Grid';
 
-// todo: implement sorting by timestamp for spins, and other fields for both indexes
 export default function ArtistsTable({
   rows,
   charted,

@@ -258,8 +258,6 @@ class ChartSearch
     protected function getQuery(array $query): array
     {
         // Generate query for fields with supported prefix search (main AC fields).
-        // todo: write in bachelor. elasticsearch doesn't store positions of terms (unless it's enabled as term_vector),
-        // so can't use edge_ngrams for prefix matching as it doesn't fetch values STARTING with the specified filter.
         $fullTextQuery = [];
         foreach (BaseSearch::AC_FIELDS as $fullTextField) {
             if (!empty($query[$fullTextField])) {

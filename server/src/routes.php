@@ -71,7 +71,6 @@ $app->get('/api/chart', function (Request $request, Response $response) {
 });
 
 /**
- * todo: extract the instance id to the env variable
  * GET Instance status.
  * https://docs.aws.amazon.com/en_us/AWSEC2/latest/APIReference/API_DescribeInstanceStatus.html
  */

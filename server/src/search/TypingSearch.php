@@ -20,14 +20,7 @@ class TypingSearch extends BaseSearch
 
     /**
      * The result data contains the auto-complete suggestions for the given query and a list of ids which match the
-     * suggestion. For example for the $field = "song" and $query = "Love", a set of items is returned:
-     * [
-     *
-     *  ...
-     * ]
-     *
-     * todo: don't run search on $query length <=2 ?
-     *
+     * suggestion.
      * @param string $query
      * @return array
      */
@@ -36,7 +29,6 @@ class TypingSearch extends BaseSearch
         $field = $this->field;
 
         // Match the root field (that is prepared to be search for autocomplete suggestions) by the query.
-        // todo: when searching "dav", first is "david davenport" because it contains two "dav".
         $match = [
             'match' => [
                 $field => [
@@ -44,7 +36,6 @@ class TypingSearch extends BaseSearch
                     'operator' => 'and',
                     // AND is needed so when searching multiple words query - no results with only one of the words are returned (e.g. for "amen co" we don't want result with only "co").
                     // support misspelling. AUTO:3:6. length < 3 - exact match, 3..5 - one edit allowed, >6 - two edits
-                    // todo: fuziness can be slow for our data. then we'll need trigrams?
                     'fuzziness' => 'auto',
                 ],
             ],

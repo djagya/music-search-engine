@@ -4,7 +4,6 @@ import { FIELDS, LABELS, TYPE_SONGS } from '../ChartPage';
 import { Th } from './Grid';
 import { formatDuration } from '../../../utils';
 
-// todo: implement sorting by timestamp for spins, and other fields for both indexes
 export default function SongTable({
   rows,
   charted,
