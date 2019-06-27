@@ -2,7 +2,7 @@
 This application demonstrates an integration of multiple services to provide a quick and precise search over a big amount of relational data.
 This includes:
 - usage of data relations information to narrow the result dataset,
-- search by a prefix match `query*` to provide a list of autocomplete suggestions during the data enter,
+- search by a prefix match to provide a list of autocomplete suggestions during the data enter,
 - access to other non-indexed data fields to provide the needed metadata for the list of matched found results.
  
 The **tech stack** consists of:
