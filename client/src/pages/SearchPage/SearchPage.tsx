@@ -42,6 +42,11 @@ const debouncedFetch = _.debounce(fetchSuggestions, 200);
 export default function SearchPage() {
   const [typingResponses, setTyping] = useState<FieldsSearchResponse>(defaultList);
   const [inputValues, setInputValues] = useState<{ [field: string]: string }>(defaultValues);
+  const [loadingFields, setLoading] = useState<{ [field: string]: boolean }>({
+    artist_name: false,
+    song_name: false,
+    release_title: false,
+  });
   const [relRes, setRelRes] = useState<FieldsSearchResponse>(defaultList);
   const [matchedItems, setMatchedItems] = useState<Song[]>([]);
 
@@ -80,11 +85,13 @@ export default function SearchPage() {
         return;
       }
 
+      setLoading({ ...loadingFields, [name]: true });
       fetchSuggestions(name, value, newSelected).then(res => {
         if (value !== currentTyped.current) {
           console.log(`Skipping old typing result for '${value}', current typed '${currentTyped.current}'`);
           return;
         }
+        setLoading({ ...loadingFields, [name]: false });
         if ('error' in res) {
           throw new Error(res.error);
         }
@@ -107,7 +114,9 @@ export default function SearchPage() {
       // Update the input value with a selected suggestion.
       setInputValues({ ...inputValues, [name]: suggestion.value });
 
-      return fetchRelatedSuggestions(empty, selected).then(res => {
+      setLoading({ ...loadingFields, [name]: true });
+      fetchRelatedSuggestions(empty, selected).then(res => {
+        setLoading({ ...loadingFields, [name]: false });
         if ('error' in res) {
           throw new Error(res.error);
         }

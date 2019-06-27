@@ -11,6 +11,7 @@ interface AcInputProps {
   placeholder: string;
   response: SearchResponse | null;
   selected: Suggestion | null;
+  loading?: boolean;
   onTyping: { (value: string): void };
   onSelect: { (suggestion: Suggestion): void };
 }
@@ -22,7 +23,7 @@ export default function AcInput(props: AcInputProps) {
   const [isActive, setActive] = useState<boolean>(false);
   const ref = useRef<HTMLDivElement>(null);
 
-  const { name, value, response, selected, onTyping, onSelect } = props;
+  const { name, value, response, selected, loading, onTyping, onSelect } = props;
 
   // Activate the input when related or typing suggestions were updated.
   useEffect(() => {
@@ -49,6 +50,7 @@ export default function AcInput(props: AcInputProps) {
           total <b>{formatTotal(response.total)}</b> took <b>{response.took}ms</b>
         </div>
       )}
+      {loading && <div className={styles.meta}>loading...</div>}
 
       <div className={styles.Input}>
         <input
