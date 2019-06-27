@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# To run on bhs3
+# Runs on Spinitron servers to prepare a spins data dump.
 
 rm -rf /tmp/data_dump
 mkdir -p /tmp/data_dump/spins

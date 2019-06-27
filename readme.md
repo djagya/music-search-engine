@@ -35,7 +35,7 @@ They are connected using the common `mainnet` network.
 
 To work with the data the services must be started first.
 ```bash
-docker-compose # to start all services
+docker-compose up
 ```
 
 Once they are running, the data and indexes can be accessed and modified.  
@@ -84,47 +84,10 @@ Once these steps are finished, the `db` container should have two databases: `sp
 There should be two indexes available in the `es01` container: `spins` (indexed spins data source) and `music` (indexed denormalized EPF data source).
 
 
-### `es01` Elastic Search container
-
-This is where the Elastic Search instance is hosted. 
-
-TODO: describe memory variables, mounted volume, 
-
-### `db` MariaDB container
-
-TODO: describe memory variables, mounted volume, 
-
-
 ## The App server
 
 The client server consists of single `app` docker container in **server** mode (started with `SERVER_MODE=1` env variable).  
 In server mode the local PHP server is started on the container port `80` and provides access to the search API (see below) and to the client app.
-
-#### Production mode
-Web-server will be available on the port `8080`. 
-The database and Elastic Search host environment variables must be specified. 
-In production deployment they would be equal the EC2 instance private IP where the *data server* is hosted.
-
-```bash
-docker run -p 8080:80 -e MYSQL_HOST=... -e ES_HOST=... app
-```
-
-
-#### Development mode
-To build the `app` container:
-
-```bash
-docker image build -t=app .
-```
-
-To start the server in development mode with the mounted current directory:
-
-```bash
-docker run -p 8080:80 -i -t -v `pwd`:/app app
-```
-
-Mounting the current directory allows to sync file changes between the host machine and container.
-It's useful for immediate asset files update when running the client side watcher `cd client && npm start`.
 
 #### Environment variables
 
@@ -140,41 +103,7 @@ To update env variables in containers:
 docker-compose up -d
 ```
 
-#### App server API
-
-There are two main endpoint:
-
-##### `GET /typing?field=...&query=...` 
-Get autocomplete suggestions for the specified `field` based on the given `query`.
-It is requested on every autocomplete input field change.
-
-Accepted params:
-- `field` string, the field name to get autocomplete suggestions for
-- `query` string, the user query to search suggestions by
-- `selected` optional json-encoded string, list of other already chosen fields to limit the suggestions by. Format: `{fieldName: 'value', ...}`
-- `debug=1` optional bool, turn on to return the full Elastic Search response data. When turned off (`0`), only the list of formatted suggestions in format expected by the client app is returned.
-
-##### `GET /related?empty=...&selected=...`
-Get a list of `empty` fields suggestions related to the `selected` fields values.
-It is requested on an autocomplete suggestion selection that leads to the value *choosing* of a field.
-
-Accepted params:
-- `empty` string, the list of the empty fields to get suggestions for separated by `:`. Format: `fieldName1:fieldName2`
-- `selected` required json-encoded string, list of other already chosen fields to limit the suggestions by. Format: `{fieldName: 'value', ...}`
-- `debug=1` optional bool, turn on to return the full Elastic Search response data. When turned off (`0`), only the list of formatted suggestions in format expected by the client app is returned.
-
-
-
-
-
-
-
-
-
-**To check memory/cpu usage stats:** `docker stats`
-
-
-# App logs
+#### Log files
 
 App logs are located in the `/app/logs` directory. There are few available log files:
 
@@ -204,45 +133,6 @@ docker-compose up
 To start the stack also rebuilding the `app` image:
 ```bash
 docker-compose up --build
-```
-
-# Load data
-To load a data dump to the db put the gzipped dump in `./data`, load the dump:
-```bash
-docker-compose exec db bash /root/data/load.sh
-```
-
-To drop the indexes, configure and ingest them again:
-```bash
-docker-compose exec app php server/harvest.php
-```
-
-# Run
-Then the image must be started.
-
-To run the `app` image and make the `EXPOSE` port accessible on the host port `8080`:
-```bash
-docker run -p 8080:80 app
-```
-
-Development mode. Run the built container with its `WORKDIR` mounted to the `pwd` allowing to sync changed files with the container.
-```bash
-docker run -p 8080:80 -i -t -v `pwd`:/app app
-```
-
-To run the db server separately.
-```bash
-docker run -p 3306:3306 -e MYSQL_ROOT_PASSWORD=root -e MYSQL_DATABASE=music mariadb
-```
-
-To run only the main app via `docker-compose` and make the `client/build` available on `localhost:8080`.
-```bash
-docker-compose run -p 8080:80  app php -S 0.0.0.0:80 client/build/server
-```
-
-Client. Development mode with running `docker-compose up` and attached `./` volume, that overrides the built assets from the docker image.
-```bash
-npm run start
 ```
 
 To warm ES data run in es01 and es02 container:
