@@ -80,8 +80,6 @@ export function Th({
     }[direction]
     : '';
 
-  console.log(direction);
-
   return (
     <th>
       <div>
@@ -114,8 +112,6 @@ export function Th({
   );
 }
 
-
-// todo: one additional page is disaplyed
 function Pagination({ response, onPageChange }: { response: ChartResponse; onPageChange: any }) {
   const PAGES_LIMIT = 5;
   const pagesCount = Math.ceil(response.total.value / PAGE_SIZE);
@@ -125,7 +121,7 @@ function Pagination({ response, onPageChange }: { response: ChartResponse; onPag
   // Increase the number of displayed pages on the right when not all on the left are displayed.
   const toPage = Math.min(page + PAGES_LIMIT + Math.max(PAGES_LIMIT - fromPage - 1, 0), pagesCount);
   const pages = [];
-  for (let i = fromPage; i <= toPage; i++) {
+  for (let i = fromPage; i < toPage; i++) {
     pages.push(i);
   }
 

@@ -32,6 +32,7 @@ export default function ChartPage() {
   const [gridType, setGridType] = useState(TYPE_SONGS);
   const [index, setIndex] = useState<string>('spins');
   const [chartMode, setChartMode] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(false);
   const [response, setResponse] = useState<ChartResponse | null>(null);
   const formNode = useRef<HTMLFormElement>(null);
 
@@ -53,10 +54,9 @@ export default function ChartPage() {
       pageSize: PAGE_SIZE,
       index,
     };
-    console.log('fetching data', { params, formData });
+    setLoading(true);
     fetchChartRows(formData, params).then(res => {
-      console.log('response', res);
-
+      setLoading(false);
       if ('error' in res) {
         throw new Error(res.error);
       }
@@ -109,6 +109,11 @@ export default function ChartPage() {
           }}
           onChartModeChange={e => setChartMode(e.currentTarget.checked)}
         />
+
+        <div style={{ marginTop: '0.5rem' }}>
+          <small>Requests made with no applied filters take longer time to finish.</small>
+        </div>
+
         <button className={styles.submitButton} type="submit">
           Search
         </button>
@@ -122,6 +127,10 @@ export default function ChartPage() {
         >
           Reset
         </button>
+        {loading && <i>&nbsp;
+            <small>Loading...</small>
+        </i>}
+
         <Grid response={response} onPageChange={(page: number, after: string | null) => fetchData({ page, after })}>
           {renderTable()}
         </Grid>

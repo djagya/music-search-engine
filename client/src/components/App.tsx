@@ -40,7 +40,8 @@ export default function App() {
           <Heading h={2}>{TITLES[route]}</Heading>
           <small>
             AWS instance (on the right) must be started to make search requests. <br />
-            It will take up to 10 minutes to load. First requests are slow due to the unwarmed cache.
+            It will take up to 10 minutes to load. First requests are slow due to the unwarmed cache. <br />
+            Spins data dump is from <i>17.06.2019</i>. EPF data dump is from <i>24.04.2019</i>.
           </small>
         </div>
 

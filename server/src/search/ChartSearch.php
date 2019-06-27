@@ -261,8 +261,7 @@ class ChartSearch
         $fullTextQuery = [];
         foreach (BaseSearch::AC_FIELDS as $fullTextField) {
             if (!empty($query[$fullTextField])) {
-                $fieldName = $this->type === self::TYPE_SONGS ? "$fullTextField.norm" : $fullTextField;
-                $fullTextQuery[] = ['match' => [$fieldName => $query[$fullTextField]]];
+                $fullTextQuery[] = ['prefix' => ["$fullTextField.norm" => $query[$fullTextField]]];
                 unset($query[$fullTextField]);
             }
         }

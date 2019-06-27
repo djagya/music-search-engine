@@ -11,7 +11,7 @@ $spacing: 0.5em;
   align-items: center;
   justify-content: space-around;
   margin: 0 auto;
-  padding: 1em 0;
+  padding: $spacing 0 1em;
   border-radius: 3px;
   margin-bottom: $spacing * 4;
 }
