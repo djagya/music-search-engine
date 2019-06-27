@@ -45,7 +45,7 @@ export default function AcInput(props: AcInputProps) {
 
   return (
     <div className={className} ref={ref}>
-      {response && response.suggestions.length > 0 && (
+      {!loading && response && response.suggestions.length > 0 && (
         <div className={styles.meta}>
           total <b>{formatTotal(response.total)}</b> took <b>{response.took}ms</b>
         </div>
