@@ -138,6 +138,7 @@ export default function SearchPage() {
                 selected={fieldsSelected[field]}
                 response={typingResponses[field] || relRes[field]}
                 placeholder={LABELS[field]}
+                loading={loadingFields[field] || false}
                 onTyping={typingHandler(field)}
                 onSelect={selectionHandler(field)}
               />
