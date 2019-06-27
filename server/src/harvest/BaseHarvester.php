@@ -7,6 +7,10 @@ use app\EsClient;
 use PDO;
 use Throwable;
 
+/**
+ * Main harvester class implementing harvesting and indexing functionality.
+ * Should be extended for each separate data source.
+ */
 abstract class BaseHarvester
 {
     const INDEX_NAME = '';

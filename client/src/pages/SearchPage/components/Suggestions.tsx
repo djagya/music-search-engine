@@ -9,6 +9,9 @@ interface SuggestionsProps {
   style: React.CSSProperties | undefined;
 }
 
+/**
+ * A list of suggestions.
+ */
 export default function Suggestions({ data, selected, onSelect, style }: SuggestionsProps) {
   return (
     <div className={styles.Suggestions} style={style}>

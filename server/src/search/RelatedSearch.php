@@ -4,6 +4,9 @@ namespace app\search;
 
 use app\Indexes;
 
+/**
+ * This search model returns a list of related to already specified field values suggestions.
+ */
 class RelatedSearch extends BaseSearch
 {
     public function search(string $query = null): array
@@ -70,6 +73,10 @@ class RelatedSearch extends BaseSearch
         return $result;
     }
 
+    /**
+     * Search and return a list of matching songs, when at least two fields are specified.
+     * @return array
+     */
     protected function getMatchedData(): array
     {
         $body = [

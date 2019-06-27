@@ -9,6 +9,9 @@ interface OptionSelectProps {
   children: string;
 }
 
+/**
+ * Renders a list of radio buttons. Provides a way to choose one out of multiple value.
+ */
 export function OptionSelect({ name, items, active, onChange, children }: OptionSelectProps) {
   return (
     <div className={styles.OptionSelect}>

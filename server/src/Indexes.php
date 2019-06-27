@@ -5,6 +5,9 @@ namespace app;
 use app\search\BaseSearch;
 use InvalidArgumentException;
 
+/**
+ * Contains indexes and fields declarations and some utility code to reset and apply the settings.
+ */
 class Indexes
 {
     const EPF_IDX = 'epf';

@@ -28,6 +28,9 @@ export const PAGE_SIZE = 50;
 
 const initPagination = { page: 0, pageSize: PAGE_SIZE, after: null, prev: null };
 
+/**
+ * Data-research application.
+ */
 export default function ChartPage() {
   const [gridType, setGridType] = useState(TYPE_SONGS);
   const [index, setIndex] = useState<string>('spins');
@@ -139,6 +142,9 @@ export default function ChartPage() {
   );
 }
 
+/**
+ * Grid setting to choose a grid type and data source.
+ */
 function GridSettings({
   gridType,
   index,

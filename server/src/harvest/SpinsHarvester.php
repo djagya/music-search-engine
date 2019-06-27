@@ -9,9 +9,7 @@ use app\search\BaseSearch;
 use PDO;
 
 /**
- * When harvesting Spins, their original ids are used as ES "_id" field.
- * Not all columns from the 'spin' table are needed to be indexed, so each row is mapped using
- * {@see SpinsHarvester::mapRow()}
+ * Spins data harvester.
  */
 class SpinsHarvester extends BaseHarvester
 {

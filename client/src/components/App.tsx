@@ -13,6 +13,9 @@ const TITLES: { [route: string]: string } = {
   '/search': 'Search',
 };
 
+/**
+ * Main app container. Contains routes logic and the top header.
+ */
 export default function App() {
   const [route, setRoute] = useState<string>(DEFAULT_ROUTE);
   const [awsRunning, setAwsRunning] = useState<boolean>(false);

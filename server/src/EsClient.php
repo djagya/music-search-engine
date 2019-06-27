@@ -6,6 +6,9 @@ use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
 use Exception;
 
+/**
+ * Provides access to an ElasticSearch node.
+ */
 class EsClient
 {
     /**

@@ -3,7 +3,12 @@ import React from 'react';
 import { FIELDS, LABELS, TYPE_SONGS } from '../ChartPage';
 import { Th } from './Grid';
 import { formatDuration } from '../../../utils';
+import { Song } from '../../../types';
+import { AppleLink } from "../../../components/UI";
 
+/**
+ * "songs" grid type representation.
+ */
 export default function SongTable({
   rows,
   charted,
@@ -12,7 +17,7 @@ export default function SongTable({
   index,
   onSortChange,
 }: {
-  rows: any[];
+  rows: Song[];
   charted: boolean;
   currentSort: string | null;
   gridType: string;
@@ -78,16 +83,22 @@ export default function SongTable({
       <tbody>
       {rows.map(row => (
         <tr key={row._id}>
-          {charted && <td>{row.rank}</td>}
+          {/*{charted && <td>{row.rank}</td>}*/}
           {hasTimestamp && <td>{row.spin_timestamp}</td>}
           <td>{row.cover_art_url && <img src={row.cover_art_url} width="50" alt={row.release_title} />}</td>
 
-          <td>{row.artist_name}</td>
+          <td>{row.artist_id ? <AppleLink aId={row.artist_id}>{row.artist_name}</AppleLink> : row.artist_name}</td>
           <td>
             {row.song_name}
             {row.song_duration && <small>&nbsp;{formatDuration(row.song_duration)}</small>}
           </td>
-          <td>{row.release_title}</td>
+          <td>
+            {row.collection_id ? (
+              <AppleLink cId={row.collection_id}>{row.release_title}</AppleLink>
+            ) : (
+              row.release_title
+            )}
+          </td>
 
           <td>{row.label_name}</td>
           <td>{row.release_genre}</td>

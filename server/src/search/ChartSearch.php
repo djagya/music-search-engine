@@ -8,6 +8,10 @@ use app\Logger;
 use InvalidArgumentException;
 use Throwable;
 
+/**
+ * This search model searches, filters and return list of table rows in one of grid types formats from a specified
+ * source.
+ */
 class ChartSearch
 {
     const TYPE_SONGS = 'songs';

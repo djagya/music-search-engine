@@ -5,6 +5,9 @@ namespace app;
 use Exception;
 use Monolog\Handler\StreamHandler;
 
+/**
+ * App logger helper utilizing Monolog.
+ */
 class Logger
 {
     /** @var \Monolog\Logger[] */

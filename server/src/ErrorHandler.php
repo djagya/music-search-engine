@@ -7,6 +7,9 @@ use Slim\Handlers\Error;
 use Slim\Handlers\PhpError;
 use Throwable;
 
+/**
+ * Custom Slim error handler. Writes errors to the standard app log.
+ */
 class ErrorHandler
 {
     public static function register()

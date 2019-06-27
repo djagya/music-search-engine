@@ -2,7 +2,11 @@ import React from 'react';
 import styles from './MatchesPreview.module.scss';
 import { Song } from '../../../types';
 import { formatDuration } from '../../../utils';
+import { AppleLink } from "../../../components/UI";
 
+/**
+ * Renders a list of matching to the entered data songs.
+ */
 export default function MatchesPreview({ data }: { data: Song[] }) {
   return (
     <div className={styles.container}>
@@ -31,7 +35,11 @@ function Item({ item }: { item: Song }) {
             &nbsp;{item.song_duration && <span className={styles.extra}>{formatDuration(item.song_duration)}</span>}
           </div>
           <div className={styles.release}>
-            {item.release_title}
+            {item.collection_id ? (
+              <AppleLink cId={item.collection_id}>{item.release_title}</AppleLink>
+            ) : (
+              item.release_title
+            )}
             &nbsp;{!!item.release_various_artists && <span className={styles.extra}>V/A</span>}
           </div>
           <div className={styles.artist}>{item.artist_name}</div>

@@ -5,7 +5,11 @@ namespace app\search;
 use app\EsClient;
 use app\Indexes;
 use app\Logger;
+use Exception;
 
+/**
+ * Base search model.
+ */
 abstract class BaseSearch
 {
     const AC_FIELDS = [
@@ -31,6 +35,7 @@ abstract class BaseSearch
      * @param array $selected [field => value]
      * @param bool $withDebug
      * @param string $index
+     * @throws Exception
      */
     public function __construct(array $emptyFields, array $selected = [], bool $withDebug = true, string $index = null)
     {

@@ -13,6 +13,10 @@ interface GridProps {
   children: any;
 }
 
+/**
+ * Main grid components. Contains summary, pagination, sortable and filterable th.
+ * Renders table rows as a children.
+ */
 export default function Grid({ response, onPageChange, children }: GridProps) {
   return (
     <div className={styles.Grid}>
@@ -30,6 +34,9 @@ export default function Grid({ response, onPageChange, children }: GridProps) {
   );
 }
 
+/**
+ * Table summary. Current page, total count, request time.
+ */
 function Summary({ response }: { response: ChartResponse | null }) {
   const range = ({ page, pageSize }: ChartResponse['pagination']) =>
     `${page * pageSize + 1} - ${Math.min(response!.total.value, (page + 1) * pageSize)}`;
@@ -48,6 +55,9 @@ function Summary({ response }: { response: ChartResponse | null }) {
   );
 }
 
+/**
+ * Sortable and filterable field column header.
+ */
 export function Th({
   name,
   label,
@@ -112,6 +122,9 @@ export function Th({
   );
 }
 
+/**
+ * Page-based pagination.
+ */
 function Pagination({ response, onPageChange }: { response: ChartResponse; onPageChange: any }) {
   const PAGES_LIMIT = 5;
   const pagesCount = Math.ceil(response.total.value / PAGE_SIZE);
@@ -144,6 +157,9 @@ function Pagination({ response, onPageChange }: { response: ChartResponse; onPag
   );
 }
 
+/**
+ * Cursor-based pagination.
+ */
 function CursorPagination({ response, onPageChange }: { response: ChartResponse; onPageChange: any }) {
   const [prevStack, setPrevStack] = useState<string[]>([]);
   const pagesCount = Math.ceil(response.total.value / PAGE_SIZE);

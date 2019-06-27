@@ -2,7 +2,11 @@ import styles from '../Chart.module.scss';
 import React from 'react';
 import { FIELDS, LABELS } from '../ChartPage';
 import { Th } from './Grid';
+import { AppleLink } from "../../../components/UI";
 
+/**
+ * "artists" grid type representation.
+ */
 export default function ArtistsTable({
   rows,
   charted,
@@ -19,7 +23,14 @@ export default function ArtistsTable({
       <thead>
       <tr>
         {charted && <th>Rank</th>}
-        <Th name="count" label="Count" sortable filter={false} currentSort={currentSort} onSortChange={onSortChange} />
+        <Th
+          name="count"
+          label="Count"
+          sortable
+          filter={false}
+          currentSort={currentSort}
+          onSortChange={onSortChange}
+        />
         <Th
           name={FIELDS.artist}
           label={LABELS[FIELDS.artist]}
@@ -38,7 +49,7 @@ export default function ArtistsTable({
           {charted && <td>{row.rank}</td>}
 
           <td>{row.count}</td>
-          <td>{row.artist_name}</td>
+          <td>{row.artist_id ? <AppleLink aId={row.artist_id}>{row.artist_name}</AppleLink> : row.artist_name}</td>
           <td>{row.release_genre.join(', ')}</td>
           <td>{row.label_name.join(', ')}</td>
         </tr>

@@ -16,7 +16,7 @@ interface AcInputProps {
 }
 
 /**
- * A field input with autocomplete support.
+ * Autocomplete field input that renders a list of suggestions below once result is retrieved.
  */
 export default function AcInput(props: AcInputProps) {
   const [isActive, setActive] = useState<boolean>(false);

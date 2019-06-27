@@ -3,6 +3,9 @@ import axios from 'axios';
 import styles from './InstanceStatus.module.scss';
 import { cx } from '../ui';
 
+/**
+ * AWS instance switch.
+ */
 export default function InstanceStatus({ onChange }: { onChange: { (v: boolean): void } }) {
   const [isRunning, setStatus] = useState<boolean>(false);
   const [isLoading, setLoading] = useState<boolean>(false);

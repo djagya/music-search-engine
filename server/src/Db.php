@@ -6,8 +6,7 @@ use PDO;
 use PDOException;
 
 /**
- * PDO guide: https://phpdelusions.net/pdo
- * https://mariadb.com/resources/blog/mariadb-and-docker-use-cases-part-1/
+ * Provides access to spins and epf MySQL databases.
  */
 class Db
 {

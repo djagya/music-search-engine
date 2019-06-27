@@ -4,6 +4,9 @@ namespace app\search;
 
 use InvalidArgumentException;
 
+/**
+ * This search model returns a list of autocomplete suggestions for a field based on a typed query.
+ */
 class TypingSearch extends BaseSearch
 {
     protected $field;
@@ -59,7 +62,6 @@ class TypingSearch extends BaseSearch
             'index' => $this->getIndexName(),
             'body' => [
                 'query' => $queryBody,
-                // todo: sort values with one score by name length
                 'aggs' => [
                     'groupByName' => [
                         'terms' => [

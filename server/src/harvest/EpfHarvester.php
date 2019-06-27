@@ -7,6 +7,9 @@ use app\Db;
 use app\Indexes;
 use PDO;
 
+/**
+ * EPF data harvester.
+ */
 class EpfHarvester extends BaseHarvester
 {
     const INDEX_NAME = Indexes::EPF_IDX;
