@@ -82,7 +82,9 @@ abstract class BaseSearch
 
         $suggestions = $this->formatSuggestions($result);
         usort($suggestions, function (array $a, array $b) {
-            return $a['value'] <=> $b['value'];
+            $aLen = strlen($a['value']);
+            $bLen = strlen($b['value']);
+            return $aLen === $bLen ? $a['value'] <=> $b['value'] : $aLen <=> $bLen;
         });
 
         return [
