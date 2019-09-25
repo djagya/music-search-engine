@@ -7,6 +7,7 @@ import ErrorBoundary from '../../components/ErrorBoundary';
 import AcInput from './components/AcInput';
 import {Heading} from '../../components/UI';
 import MatchesPreview from './components/MatchesPreview';
+import Toggle from '../../components/Toggle';
 
 const MIN_PREFIX_LENGTH = 2;
 const DELAY_MS = 250;
@@ -54,9 +55,11 @@ export default function SearchPage() {
   const [fieldsSelected, setSelected] = useState<SelectedFields>(defaultList);
   const currentTyped = useRef<string>('');
 
+  const [spinsEnabled, setSpinsEnabled] = useState(true);
+
   const typingFetcher = useCallback(
       _.debounce((name: string, value: string, newSelected: any) => {
-        fetchSuggestions(name, value, newSelected).then(res => {
+        fetchSuggestions(name, value, newSelected, spinsEnabled).then(res => {
           if (value !== currentTyped.current) {
             console.log(`Skipping old typing result for '${value}', current typed '${currentTyped.current}'`);
             return;
@@ -123,7 +126,7 @@ export default function SearchPage() {
       setInputValues({ ...inputValues, [name]: suggestion.value });
 
       setLoading({ ...loadingFields, [name]: true });
-      fetchRelatedSuggestions(empty, selected).then(res => {
+      fetchRelatedSuggestions(empty, selected, spinsEnabled).then(res => {
         setLoading({ ...loadingFields, [name]: false });
         if ('error' in res) {
           throw new Error(res.error);
@@ -164,6 +167,11 @@ export default function SearchPage() {
           >
             Clear
           </a>
+          <Toggle
+              isActive={spinsEnabled}
+              labels={{on: 'spins', off: 'no spins'}}
+              onChange={() => setSpinsEnabled(!spinsEnabled)}
+          />
         </div>
       </div>
 

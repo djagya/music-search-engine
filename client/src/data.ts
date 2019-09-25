@@ -1,10 +1,11 @@
-import axios, { AxiosResponse } from 'axios';
-import { ChartResponse, ErrorResponse, RelatedResponse, SearchResponse, SelectedFields } from './types';
+import axios, {AxiosResponse} from 'axios';
+import {ChartResponse, ErrorResponse, RelatedResponse, SearchResponse, SelectedFields} from './types';
 
 export function fetchSuggestions(
-  field: string,
-  value: string,
-  selectedFields: SelectedFields,
+    field: string,
+    value: string,
+    selectedFields: SelectedFields,
+    withSpins?: boolean,
 ): Promise<SearchResponse | ErrorResponse> {
   return axios
     .get('/api/typing', {
@@ -12,6 +13,7 @@ export function fetchSuggestions(
         field,
         query: value.trim(),
         selected: JSON.stringify(getSelectedFieldsData(selectedFields)),
+          index: withSpins ? null : 'epf',
       },
     })
     .then((res: AxiosResponse<SearchResponse>) => res.data)
@@ -22,14 +24,16 @@ export function fetchSuggestions(
 }
 
 export function fetchRelatedSuggestions(
-  emptyFields: string[],
-  selectedFields: SelectedFields,
+    emptyFields: string[],
+    selectedFields: SelectedFields,
+    withSpins?: boolean,
 ): Promise<RelatedResponse | ErrorResponse> {
   return axios
     .get('/api/related', {
       params: {
         empty: emptyFields.join(':'),
         selected: JSON.stringify(getSelectedFieldsData(selectedFields)),
+          index: withSpins ? null : 'epf',
       },
     })
     .then((res: AxiosResponse<RelatedResponse>) => res.data)
