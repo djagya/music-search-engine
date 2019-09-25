@@ -9,7 +9,7 @@ import {Heading} from '../../components/UI';
 import MatchesPreview from './components/MatchesPreview';
 
 const MIN_PREFIX_LENGTH = 2;
-const DELAY_MS = 300;
+const DELAY_MS = 150;
 
 const fields: string[] = ['artist_name', 'song_name', 'release_title'];
 const defaultList = {
