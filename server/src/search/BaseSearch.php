@@ -80,13 +80,6 @@ abstract class BaseSearch
             return $result;
         }
 
-        $suggestions = $this->formatSuggestions($result);
-        usort($suggestions, function (array $a, array $b) {
-            $aLen = strlen($a['value']);
-            $bLen = strlen($b['value']);
-            return $aLen === $bLen ? $a['value'] <=> $b['value'] : $aLen <=> $bLen;
-        });
-
         return [
             'took' => $result['took'],
             'maxScore' => 0,
@@ -94,7 +87,7 @@ abstract class BaseSearch
             'total' => !empty($result['aggregations']['totalCount']['value'])
                 ? ['value' => $result['aggregations']['totalCount']['value'], 'relation' => '']
                 : $result['hits']['total'],
-            'suggestions' => $suggestions,
+            'suggestions' => $this->formatSuggestions($result),
         ];
     }
 

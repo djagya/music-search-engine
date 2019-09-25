@@ -94,7 +94,7 @@ class TypingSearch extends BaseSearch
     {
         $suggestions = $data['aggregations']['groupByName']['buckets'];
 
-        return array_map(function (array $item) {
+        $suggestions = array_map(function (array $item) {
             $hits = $item['topHits']['hits'];
             $hit = $hits['hits'][0];
 
@@ -106,5 +106,13 @@ class TypingSearch extends BaseSearch
                 '_index' => $hit['_index'],
             ];
         }, $suggestions);
+
+        usort($suggestions, function (array $a, array $b) {
+            $aLen = strlen($a['value']);
+            $bLen = strlen($b['value']);
+            return $aLen === $bLen ? $a['value'] <=> $b['value'] : $aLen <=> $bLen;
+        });
+
+        return $suggestions;
     }
 }
