@@ -1,14 +1,15 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import _ from 'underscore';
 import styles from './Search.module.scss';
-import { SearchResponse, SelectedFields, Song, Suggestion } from '../../types';
-import { fetchRelatedSuggestions, fetchSuggestions } from '../../data';
+import {SearchResponse, SelectedFields, Song, Suggestion} from '../../types';
+import {fetchRelatedSuggestions, fetchSuggestions} from '../../data';
 import ErrorBoundary from '../../components/ErrorBoundary';
 import AcInput from './components/AcInput';
-import { Heading } from '../../components/UI';
+import {Heading} from '../../components/UI';
 import MatchesPreview from './components/MatchesPreview';
 
 const MIN_PREFIX_LENGTH = 2;
+const DELAY_MS = 300;
 
 const fields: string[] = ['artist_name', 'song_name', 'release_title'];
 const defaultList = {
@@ -53,6 +54,23 @@ export default function SearchPage() {
   const [fieldsSelected, setSelected] = useState<SelectedFields>(defaultList);
   const currentTyped = useRef<string>('');
 
+  const typingFetcher = useCallback(
+      _.debounce((name: string, value: string, newSelected: any) => {
+        fetchSuggestions(name, value, newSelected).then(res => {
+          if (value !== currentTyped.current) {
+            console.log(`Skipping old typing result for '${value}', current typed '${currentTyped.current}'`);
+            return;
+          }
+          setLoading({...loadingFields, [name]: false});
+          if ('error' in res) {
+            throw new Error(res.error);
+          }
+          setTyping({...typingResponses, [name]: res});
+        });
+      }, DELAY_MS),
+      [],
+  );
+
   // When there are no typing responses, reset everything related.
   useEffect(() => {
     if (Object.values(typingResponses).filter(_ => _ !== null).length === 0) {
@@ -86,17 +104,7 @@ export default function SearchPage() {
       }
 
       setLoading({ ...loadingFields, [name]: true });
-      fetchSuggestions(name, value, newSelected).then(res => {
-        if (value !== currentTyped.current) {
-          console.log(`Skipping old typing result for '${value}', current typed '${currentTyped.current}'`);
-          return;
-        }
-        setLoading({ ...loadingFields, [name]: false });
-        if ('error' in res) {
-          throw new Error(res.error);
-        }
-        setTyping({ ...typingResponses, [name]: res });
-      });
+      typingFetcher(name, value, newSelected);
     };
   }
 

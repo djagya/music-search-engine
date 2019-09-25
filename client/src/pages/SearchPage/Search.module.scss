@@ -1,11 +1,11 @@
 $spacing: 0.5em;
 
 .container {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    width: 80%;
-    margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  width: 80%;
+  margin: 0 auto;
 
   @media (max-width: 768px) {
     width: 100%;
@@ -13,17 +13,17 @@ $spacing: 0.5em;
 }
 
 .Panel {
-    padding: $spacing;
-    background-color: #fafafa;
-    border-radius: 3px;
-    flex-grow: 0;
-    position: relative;
+  padding: $spacing;
+  background-color: #fafafa;
+  border-radius: 3px;
+  flex-grow: 0;
+  position: relative;
 }
 
 .Form {
-    display: flex;
-    flex-direction: row;
-    justify-content: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
   align-items: flex-end;
 
   > * {
@@ -32,10 +32,10 @@ $spacing: 0.5em;
 }
 
 .Preview {
-    background-color: #ddd;
-    margin-top: -10px;
+  background-color: #ddd;
+  margin-top: -10px;
   padding-top: 20px;
-    border-radius: 3px;
-    min-height: 50vh;
+  border-radius: 3px;
+  min-height: 50vh;
   margin-bottom: $spacing * 2;
 }
