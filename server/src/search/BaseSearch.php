@@ -80,6 +80,11 @@ abstract class BaseSearch
             return $result;
         }
 
+        $suggestions = $this->formatSuggestions($result);
+        usort($suggestions, function (array $a, array $b) {
+            return $a['value'] <=> $b['value'];
+        });
+
         return [
             'took' => $result['took'],
             'maxScore' => 0,
