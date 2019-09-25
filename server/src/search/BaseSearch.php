@@ -92,7 +92,7 @@ abstract class BaseSearch
             'total' => !empty($result['aggregations']['totalCount']['value'])
                 ? ['value' => $result['aggregations']['totalCount']['value'], 'relation' => '']
                 : $result['hits']['total'],
-            'suggestions' => $this->formatSuggestions($result),
+            'suggestions' => $suggestions,
         ];
     }
 
