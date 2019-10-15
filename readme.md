@@ -137,9 +137,14 @@ docker-compose up --build
 
 To warm ES data run in es01 and es02 container:
 ```bash
+# Install vmtouch
 yum install git make sudo gcc
 git clone https://github.com/hoytech/vmtouch.git
 cd vmtouch
 make
 sudo make install
+
+# Cache volumes
+sudo /usr/local/bin/vmtouch -t /var/lib/docker/volumes/bachelor-search_esdata01/_data
+sudo /usr/local/bin/vmtouch -t /var/lib/docker/volumes/bachelor-search_esdata02/_data
 ```
